@@ -3,6 +3,7 @@
 Team Finder คือเว็บหาทีมและสมาชิกโปรเจกต์สำหรับนักศึกษา ส่งมอบระบบสมัครสมาชิก เลือกทักษะ เข้าสู่ระบบ กระดานหาทีม และใบสมัครเข้าทีม โดยเชื่อม API จริงทั้งหมด ไม่มี mock
 
 - API contract: [`docs/api.md`](docs/api.md)
+- คู่มือ deploy production (Nginx + PHP-FPM + HTTPS): [`docs/deploy.md`](docs/deploy.md)
 - สถานะงานที่ตรวจแล้วและข้อจำกัด: [`docs/handoff.md`](docs/handoff.md)
 - Spec ที่อนุมัติ: [`docs/superpowers/specs/2026-11-07-day-1-full-stack-design.md`](docs/superpowers/specs/2026-11-07-day-1-full-stack-design.md)
 - กฎสำหรับผู้พัฒนาต่อ: [`AGENTS.md`](AGENTS.md)
@@ -29,7 +30,8 @@ Team Finder คือเว็บหาทีมและสมาชิกโ�
 - Pagination ของ feed, แก้ไข/ลบโพสต์
 - Notification, chat, admin, รูปโปรไฟล์
 - Rate limit, email verification, password reset
-- Nginx, HTTPS, production deployment
+- Deploy จริงบน server/domain (มี config ตัวอย่างและคู่มือใน `docs/deploy.md` แล้ว แต่ยังไม่ได้รันบน server จริง)
+- ทดสอบกับผู้ใช้จริง 3–5 คน
 
 ## สิ่งที่ต้องมี
 
@@ -43,8 +45,9 @@ Team Finder คือเว็บหาทีมและสมาชิกโ�
 ```text
 team-finder/
 ├── backend/          Yii2 JSON API
+├── deploy/           Nginx production config ตัวอย่าง
 ├── frontend/         React + Vite SPA
-├── docs/             api.md, handoff.md, spec/plan
+├── docs/             api.md, deploy.md, handoff.md, spec/plan
 ├── AGENTS.md
 ├── README.md
 └── .gitignore
@@ -102,6 +105,8 @@ php tests/schema_smoke.php
 php tests/auth_model_smoke.php
 php tests/api_smoke.php
 php tests/post_smoke.php
+php tests/application_smoke.php
+php tests/me_smoke.php
 ```
 
 `api_smoke.php` รับ `API_URL` ได้ แต่ยอมให้ยิงเฉพาะ host `localhost`, `127.0.0.1`, `::1` เท่านั้น
@@ -124,5 +129,6 @@ npm run build
 
 ## เอกสารเพิ่มเติม
 
-- [`docs/api.md`](docs/api.md) — source of truth ของ request/response/error ทั้งสาม endpoint
-- [`docs/handoff.md`](docs/handoff.md) — สิ่งที่ implement แล้ว, ผลตรวจจริง, ข้อจำกัด, งาน Day 2
+- [`docs/api.md`](docs/api.md) — source of truth ของ request/response/error ทั้ง 14 endpoint
+- [`docs/deploy.md`](docs/deploy.md) — ขั้นตอน deploy production พร้อม Nginx/PHP-FPM/HTTPS
+- [`docs/handoff.md`](docs/handoff.md) — สิ่งที่ implement แล้ว, ผลตรวจจริง, ข้อจำกัด, งานถัดไป

@@ -1,0 +1,50 @@
+# Team Finder — Nginx + PHP-FPM ตัวอย่างสำหรับ production
+# แทนที่ teamfinder.example.com, path และ PHP socket ให้ตรงเครื่องจริง
+
+server {
+    listen 80;
+    server_name teamfinder.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name teamfinder.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/teamfinder.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/teamfinder.example.com/privkey.pem;
+
+    # SPA ที่ build แล้ว (npm run build)
+    root /var/www/team-finder/frontend/dist;
+    index index.html;
+
+    client_max_body_size 2m;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+
+    # API → Yii2 front controller ตัวเดียว
+    location ^~ /api/ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME /var/www/team-finder/backend/web/index.php;
+        fastcgi_param SCRIPT_NAME /index.php;
+        fastcgi_param DOCUMENT_ROOT /var/www/team-finder/backend/web;
+        fastcgi_param YII_ENV prod;
+        fastcgi_param YII_DEBUG 0;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+    }
+
+    # SPA fallback สำหรับ client-side route เช่น /me/applications
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+
+    location ~* \.(?:js|css|woff2?|png|jpg|jpeg|svg|ico)$ {
+        expires 7d;
+        add_header Cache-Control "public";
+        try_files $uri =404;
+    }
+}

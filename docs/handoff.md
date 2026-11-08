@@ -1,7 +1,7 @@
-# Team Finder — Handoff (Day 1–4)
+# Team Finder — Handoff (Day 1–5)
 
 วันที่ตรวจ: 2026-11-08  
-ขอบเขต: เฉพาะสิ่งที่ implement และตรวจแล้วจริงถึง Day 4
+ขอบเขต: เฉพาะสิ่งที่ implement และตรวจแล้วจริงถึง Day 5
 
 ## สิ่งที่ใช้งานได้
 
@@ -50,6 +50,12 @@ Contract ฉบับเต็มอยู่ที่ [`docs/api.md`](api.md)
 | อื่น ๆ | redirect ไป `/` หรือ `/login` ตามสถานะ token |
 
 เมื่อมี token จะแสดง topbar พร้อมเมนูกระดาน/โพสต์ของฉัน/ใบสมัครของฉัน/โปรไฟล์ และปุ่มออกจากระบบ
+
+### Production artifacts
+
+- [`deploy/nginx.conf.example`](../deploy/nginx.conf.example) — Nginx 1 domain: SPA + `/api/` ไป PHP-FPM, HTTPS, SPA fallback
+- [`docs/deploy.md`](deploy.md) — ขั้นตอนติดตั้ง, ตั้ง DB, build frontend, HTTPS, อัปเดต, backup และ checklist
+- `backend/web/index.php` อ่าน `YII_ENV`/`YII_DEBUG` จาก `$_SERVER` หรือ environment แล้ว; production config ส่ง `prod` + `0` ผ่าน FastCGI
 
 ## สภาพแวดล้อมที่ตรวจ
 
@@ -229,7 +235,20 @@ Day 2 frontend (feed/create/detail) ยังไม่ได้รัน browser
 
 Day 3 (apply/owner list/accept/reject/close) ยังไม่ได้รัน browser flow เช่นกัน; ตรวจด้วย `application_smoke.php`, `npm run lint` และ `npm run build`
 
-Day 4 (feed filter, `/me`, `/me/posts`, `/me/applications`) ยังไม่ได้รัน browser flow; ตรวจด้วย `post_smoke.php`, `me_smoke.php`, `npm run lint` และ `npm run build` ก่อนส่งงานควรรัน browser flow ของ flow หลักครบวงจรอีกครั้ง
+Day 4 (feed filter, `/me`, `/me/posts`, `/me/applications`) ยังไม่ได้รัน browser flow ในรอบนั้น; ตรวจด้วย `post_smoke.php`, `me_smoke.php`, `npm run lint` และ `npm run build`
+
+Day 5 รัน browser flow จริงครบวงจรบน Chromium กับ backend `:8080` และ Vite `:5173` โดยใช้ผู้ใช้ชั่วคราว 2 บัญชีและโพสต์ชั่วคราว 2 โพสต์ (ลบข้อมูลทดสอบออกหลังจบ):
+
+- register ผ่านฟอร์มจริง 2 บัญชี (owner + applicant) สำเร็จ และ topbar แสดงชื่อผู้ใช้
+- feed โหลดโพสต์จริง, กรองด้วย `q` แล้วเหลือเฉพาะโพสต์ที่ตรง, คำค้นที่ไม่ตรงแสดง empty state, ปุ่มล้างตัวกรองกลับมาแสดงรายการปกติ
+- สร้างโพสต์ผ่านฟอร์มจริง (category `contest`, 2 slots, deadline, 2 skills) → redirect ไป `/posts/44` พร้อมป้าย “โพสต์ของคุณ”
+- applicant สมัครโพสต์ → detail แสดง “สถานะใบสมัครของคุณ: รอการตอบรับ”, `/me/applications` แสดงสถานะ pending และ **ไม่แสดง** LINE ID เจ้าของ
+- owner เห็น “ผู้สมัคร (1)” พร้อมปุ่มตอบรับ/ปฏิเสธ และ **ไม่เห็น** LINE ID ผู้สมัครตอน pending; กดตอบรับแล้วเห็น `LINE: e2e.applicant.line`
+- applicant เปิด `/me/applications` อีกครั้ง: ใบสมัคร accepted แสดง `LINE: e2e.owner.line`
+- สร้างโพสต์ที่สอง → applicant สมัคร → owner กดปฏิเสธ → ทั้งฝั่ง owner และ `/me/applications` แสดง “ไม่ได้รับเลือก” และไม่มี LINE ID
+- owner กด “ปิดรับสมัคร” → หลัง reload ป้ายเปลี่ยนเป็น “ปิดรับ”, ปุ่มปิดหาย, DB `post.status=closed`
+- `/me` แสดงโปรไฟล์จริง, แก้ bio ผ่านฟอร์มแล้วบันทึกสำเร็จ; `/me/posts` แสดง `รอตอบ 1` และ `รับแล้ว 0/2`
+- console ไม่มี error/warning; ข้อมูลทดสอบถูกลบจนเหลือ demo user 1 คน, post 22, application 0
 
 ## ไฟล์ที่เป็น local-only และไม่ควร commit
 
@@ -258,8 +277,10 @@ Day 4 (feed filter, `/me`, `/me/posts`, `/me/applications`) ยังไม่�
 - อ่าน feed/detail ต้องมี token; ยังไม่มี public read
 - ไม่มี rate limit, lockout, email verification, password reset
 - Validation message จาก backend เป็นภาษาอังกฤษและแสดงใต้ช่องตามที่ส่งมา; ข้อความระดับฟอร์มเป็นภาษาไทย
-- ไม่มี CORS; development พึ่ง Vite proxy และ production ยังไม่มี config
-- `YII_DEBUG` เปิดใน `web/index.php` (development) ทำให้ error บางตัวมี `previous`; ต้องปิดเมื่อทำ production
+- ไม่มี CORS; development ใช้ Vite proxy และ production ใช้ Nginx origin เดียวกันตาม `docs/deploy.md`
+- `YII_ENV`/`YII_DEBUG` อ่านจาก environment/FastCGI แล้ว ค่าเริ่มต้น development คือ `dev` + debug เปิด; production config ตั้ง `prod` + debug ปิด
+- ยังไม่ได้ deploy บน server/domain จริง; มีเพียง config ตัวอย่างและคู่มือที่ยังไม่ผ่านการรันจริง (เครื่อง dev ไม่มี Nginx จึงยังไม่ได้รัน `nginx -t`)
+- ยังไม่ได้ทดสอบกับผู้ใช้จริง 3–5 คน
 - `enableStrictParsing` เปิดแล้ว: เฉพาะ path ใน `docs/api.md` เท่านั้น; bare controller path คืน 404
 - Response เป็น JSON ตาม contract เมื่อ client ส่ง `Accept: application/json`; Yii ยัง negotiate เป็น XML สำหรับ `Accept: application/xml` หรือ Accept แบบ browser ซึ่ง XML ไม่อยู่ใน contract
 - MariaDB session timezone เป็น `SYSTEM`; แอปใช้ `Asia/Bangkok` และเวลาที่ตรวจตรงกัน แต่ `created_at` มาจาก DB `CURRENT_TIMESTAMP` จึงควรระวังถ้าย้ายเครื่อง/ตั้ง DB timezone ต่าง
@@ -267,24 +288,25 @@ Day 4 (feed filter, `/me`, `/me/posts`, `/me/applications`) ยังไม่�
 - ไฟล์ template ที่ยังไม่ใช้ (`src/assets/hero.png`, `react.svg`, `vite.svg`, `public/icons.svg`) ยังอยู่
 - มี demo user `demo@teamfinder.local` ใน local DB สำหรับลองใช้งาน (ไม่ใช่ seed ใน migration และไม่ควรใช้ใน production)
 
-## สิ่งที่อยู่นอกรอบ Day 4
+## สิ่งที่อยู่นอกรอบ Day 5
 
+- Deploy จริงบน server/domain (ต้องมี server, domain และ credential จากผู้ใช้)
+- ทดสอบกับผู้ใช้จริง 3–5 คน
 - Notification, chat, admin, profile image
-- Nginx, HTTPS, production deployment
 - Rate limit, lockout, email verification, password reset
 
-## งานถัดไป — Day 5
+## งานถัดไป
 
-1. รัน browser flow จริงครบวงจร: register/login → feed/filter → create → apply → accept/reject → close → `/me` ทั้งสามหน้า
-2. เพิ่ม Nginx + PHP-FPM + HTTPS config ตัวอย่างและคู่มือ deploy (ต้องมี server/domain/credential จากผู้ใช้)
-3. ทดสอบกับผู้ใช้จริง 3–5 คน แล้วแก้ UI/UX ตามผล
-4. อัปเดต README/handoff ให้ตรง production
+1. Deploy ตาม `docs/deploy.md` บน server จริง แล้วรัน smoke test และ browser flow ซ้ำบน HTTPS
+2. ลบ demo user ออกจาก production และตั้ง backup ฐานข้อมูลรายวัน
+3. ทดสอบกับผู้ใช้จริง 3–5 คน เก็บปัญหา UI/UX แล้วแก้รอบถัดไป
+4. ถ้าเปิดสาธารณะ ควรเพิ่ม rate limit และ email verification ก่อน
 
 ## สถานะ Git
 
 - Repository: `https://github.com/Littlebluebies/team-finder.git`
 - Branch หลัก: `main`
-- Day 3 commit ล่าสุด: `e51371c` (`feat: Day 3 applications, accept/reject and close post with accepted-only LINE ID`)
-- Day 4 ยังไม่ commit
+- Day 4 commit: `9a761bd` (`feat: Day 4 feed filters, profile and my posts/applications`) push แล้ว
+- Day 5 ยังไม่ commit
 - ดู commit hash ล่าสุดได้จาก `git log --oneline -1` หรือหน้า repository
 - การกระทำกับ Git ทุกชนิดหลังจากนี้ต้องได้รับการยืนยันใหม่จากผู้ใช้ก่อน
