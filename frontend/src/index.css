@@ -158,3 +158,37 @@ textarea:focus { outline: 3px solid #3f6b4c; outline-offset: 2px; }
 @media (max-width: 640px) {
   .field-row { grid-template-columns: 1fr; }
 }
+
+/* Day 3: application flow */
+.application-status {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid #d8e0d3;
+  border-radius: 12px;
+  background: #f3f6ef;
+}
+.application-status p { margin: 0 0 6px; }
+.application-status p:last-child { margin-bottom: 0; }
+.apply-form { margin-top: 22px; padding-top: 18px; border-top: 1px solid #d8e0d3; }
+.apply-form h2 { margin: 0; }
+.owner-panel { margin-top: 24px; padding-top: 18px; border-top: 1px solid #d8e0d3; }
+.application-list { list-style: none; margin: 12px 0; padding: 0; display: grid; gap: 12px; }
+.application-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid #d8e0d3;
+  border-radius: 12px;
+}
+.application-item p { margin: 4px 0; }
+.application-skills { color: #526457; font-size: 0.88rem; }
+.application-message { white-space: pre-line; }
+.application-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.application-actions .button { min-height: 40px; padding: 8px 14px; }
+.application-actions .button.secondary { margin-top: 0; }
+
+@media (max-width: 520px) {
+  .application-item { flex-direction: column; }
+}

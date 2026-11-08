@@ -22,8 +22,26 @@ class Post extends ActiveRecord
             ->viaTable('post_skill', ['post_id' => 'id']);
     }
 
-    public function toApiArray()
+    public function toApiArray($viewer = null, $includeApplication = false)
     {
+        $viewerId = $viewer === null ? null : (int)$viewer->id;
+        $isOwner = $viewerId !== null && (int)$this->owner_id === $viewerId;
+
+        $application = null;
+        if ($includeApplication && $viewerId !== null && !$isOwner) {
+            $application = Application::find()
+                ->where(['post_id' => $this->id, 'user_id' => $viewerId])
+                ->one();
+        }
+
+        $owner = [
+            'id' => (int)$this->owner->id,
+            'display_name' => $this->owner->display_name,
+        ];
+        if ($application !== null && $application->status === 'accepted') {
+            $owner['line_id'] = $this->owner->line_id;
+        }
+
         return [
             'id' => (int)$this->id,
             'title' => $this->title,
@@ -33,10 +51,12 @@ class Post extends ActiveRecord
             'deadline' => $this->deadline,
             'status' => $this->status,
             'created_at' => $this->created_at,
-            'owner' => [
-                'id' => (int)$this->owner->id,
-                'display_name' => $this->owner->display_name,
+            'is_owner' => $isOwner,
+            'viewer_application' => $application === null ? null : [
+                'id' => (int)$application->id,
+                'status' => $application->status,
             ],
+            'owner' => $owner,
             'skills' => array_map(static function ($skill) {
                 return ['id' => (int)$skill->id, 'name' => $skill->name];
             }, $this->getSkills()->orderBy(['skill.id' => SORT_ASC])->all()),

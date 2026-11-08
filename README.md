@@ -1,6 +1,6 @@
 # Team Finder
 
-Team Finder คือเว็บหาทีมและสมาชิกโปรเจกต์สำหรับนักศึกษา Day 1 ส่งมอบเฉพาะสมัครสมาชิก เลือกทักษะ เข้าสู่ระบบ และออกจากระบบ โดยเชื่อม API จริงทั้งหมด ไม่มี mock
+Team Finder คือเว็บหาทีมและสมาชิกโปรเจกต์สำหรับนักศึกษา ส่งมอบระบบสมัครสมาชิก เลือกทักษะ เข้าสู่ระบบ กระดานหาทีม และใบสมัครเข้าทีม โดยเชื่อม API จริงทั้งหมด ไม่มี mock
 
 - API contract: [`docs/api.md`](docs/api.md)
 - สถานะงานที่ตรวจแล้วและข้อจำกัด: [`docs/handoff.md`](docs/handoff.md)
@@ -15,16 +15,17 @@ Team Finder คือเว็บหาทีมและสมาชิกโ�
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/skills`
-- `POST /api/posts`, `GET /api/posts`, `GET /api/posts/{id}` (ต้องส่ง Bearer token, 401 เมื่อ token ไม่ถูกต้อง)
-- หน้า `/register`, `/login`, กระดานหาทีม (`/`), หน้าสร้างโพสต์ (`/posts/new`) และหน้ารายละเอียดโพสต์ (`/posts/:id`)
+- `POST /api/posts`, `GET /api/posts`, `GET /api/posts/{id}`, `PATCH /api/posts/{id}` (ต้องส่ง Bearer token, 401 เมื่อ token ไม่ถูกต้อง)
+- `POST /api/posts/{id}/applications`, `GET /api/posts/{id}/applications`, `PATCH /api/applications/{id}` (owner เท่านั้นสำหรับ list/update)
+- หน้า `/register`, `/login`, กระดานหาทีม (`/`), หน้าสร้างโพสต์ (`/posts/new`) และหน้ารายละเอียดโพสต์ (`/posts/:id`) พร้อมฟอร์มสมัครและเครื่องมือ owner
+- LINE ID ของผู้ใช้อื่นเปิดเผยเฉพาะใบสมัครที่ `accepted` ของโพสต์เดียวกัน
 - Strict parsing: มีเพียง path ตาม `docs/api.md` เท่านั้นที่ตอบได้
 - Smoke tests ฝั่ง backend, lint/build ฝั่ง frontend และเอกสาร API/ติดตั้ง/handoff
 
 สิ่งที่ยังไม่ทำในรอบนี้:
 
-- ตัวกรอง/แบ่งหน้าของ feed, แก้ไข/ปิดโพสต์
-- สมัครเข้าทีม, รับ/ปฏิเสธใบสมัคร
-- `/api/me*`, หน้าโปรไฟล์, การเปิดเผย LINE ID ของผู้ใช้อื่น
+- ตัวกรอง/แบ่งหน้าของ feed, แก้ไข/ลบโพสต์
+- `/api/me*`, หน้าโปรไฟล์
 - Rate limit, notification, chat, admin, รูปโปรไฟล์
 - Nginx, HTTPS, production deployment
 

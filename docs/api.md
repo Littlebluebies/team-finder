@@ -21,6 +21,10 @@ Source of truth สำหรับ API ที่ implement แล้ว หา�
 | POST | `/api/posts` | ต้อง (Bearer token) |
 | GET | `/api/posts` | ต้อง (Bearer token) |
 | GET | `/api/posts/{id}` | ต้อง (Bearer token) |
+| POST | `/api/posts/{id}/applications` | ต้อง (Bearer token) |
+| GET | `/api/posts/{id}/applications` | ต้อง (Bearer token), เจ้าของโพสต์เท่านั้น |
+| PATCH | `/api/applications/{id}` | ต้อง (Bearer token), เจ้าของโพสต์เท่านั้น |
+| PATCH | `/api/posts/{id}` | ต้อง (Bearer token), เจ้าของโพสต์เท่านั้น |
 
 ## Authentication และ token
 
@@ -32,7 +36,8 @@ Endpoint ที่ระบุว่า "ต้อง" ล็อกอินต�
 - Login สำเร็จทุกครั้งออก token ใหม่และแทนที่ token เดิม; token เก่าใช้ไม่ได้ทันที
 - Token ที่ผิดหรือหมดอายุต้องไม่ผ่านการยืนยันตัวตน
 - ไม่ส่ง password, password hash, token hash หรือ `access_token_*` ใน response ใด ๆ
-- `line_id` ของผู้ใช้อื่นยังไม่เปิดเผยในทุก endpoint (`owner` ของ post มีเพียง `id` และ `display_name`)
+- `line_id` ของผู้ใช้อื่นเปิดเผยเฉพาะกรณีที่มีใบสมัครของโพสต์เดียวกันและสถานะเป็น `accepted`: owner เห็น `applicant.line_id` และผู้สมัครเห็น `owner.line_id`; กรณี pending/rejected/ไม่มีใบสมัครจะไม่มี key `line_id` เลย
+- Feed ไม่มี `line_id` ของใครทั้งสิ้น; detail มีเฉพาะ `owner.line_id` ตามกฎข้างต้น
 
 ## ค่าที่ใช้ร่วมกัน
 
@@ -234,6 +239,8 @@ Seed มีหกรายการนี้เสมอและเรียง
   "deadline": "2026-12-31",
   "status": "open",
   "created_at": "2026-11-08 10:00:00",
+  "is_owner": true,
+  "viewer_application": null,
   "owner": { "id": 7, "display_name": "สมชาย ใจดี" },
   "skills": [
     { "id": 3, "name": "ถ่ายภาพ" },
@@ -265,6 +272,8 @@ Seed มีหกรายการนี้เสมอและเรียง
     "deadline": "2026-12-15",
     "status": "open",
     "created_at": "2026-11-08 10:05:00",
+    "is_owner": false,
+    "viewer_application": null,
     "owner": { "id": 8, "display_name": "…" },
     "skills": [{ "id": 4, "name": "UI/UX" }]
   }
@@ -277,27 +286,154 @@ Seed มีหกรายการนี้เสมอและเรียง
 
 ## 6. `GET /api/posts/{id}`
 
-ต้องล็อกอิน คืนโพสต์หนึ่งรายการในรูปแบบเดียวกับ success ของ `POST /api/posts`
+ต้องล็อกอิน คืนโพสต์หนึ่งรายการในรูปแบบเดียวกับ success ของ `POST /api/posts` พร้อม field สำหรับผู้ดู:
+
+- `is_owner` — `true` เมื่อผู้เรียกเป็นเจ้าของโพสต์
+- `viewer_application` — `null` เมื่อยังไม่สมัครหรือเป็นเจ้าของ; เมื่อสมัครแล้วเป็น `{ "id": …, "status": "pending|accepted|rejected" }`
+- `owner.line_id` — มีเฉพาะเมื่อใบสมัครของผู้เรียกสถานะ `accepted` เท่านั้น
 
 ### Errors
 
 - `401` — ขาด header, token ผิด หรือ token หมดอายุ
 - `404` — ไม่มีโพสต์ที่มี id นี้
 
+## 7. `POST /api/posts/{id}/applications`
+
+ต้องล็อกอิน สมัครเข้าทีมของโพสต์ `id` หนึ่งครั้งต่อคน (unique `post_id` + `user_id`) `user_id` มาจาก token เสมอ
+
+### Request fields
+
+| Field | Required | Rules |
+| --- | --- | --- |
+| `message` | yes | string ยาวอย่างน้อย 1 ตัวอักษร |
+
+### Request example
+
+```json
+{ "message": "สนใจร่วมทีมครับ มีประสบการณ์เขียนเว็บ" }
+```
+
+### Success — `201 Created`
+
+```json
+{
+  "id": 3,
+  "post_id": 1,
+  "status": "pending",
+  "message": "สนใจร่วมทีมครับ มีประสบการณ์เขียนเว็บ",
+  "created_at": "2026-11-08 11:00:00",
+  "applicant": {
+    "id": 8,
+    "display_name": "สมหญิง ตั้งใจ",
+    "skills": [{ "id": 2, "name": "เขียนเว็บ" }]
+  }
+}
+```
+
+`applicant.line_id` ไม่มีใน response จนกว่าใบสมัครจะ `accepted`
+
+### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+- `404` — ไม่มีโพสต์ที่มี id นี้
+- `409 Conflict` — ผู้ใช้เคยสมัครโพสต์นี้แล้ว
+- `422` — `message` หาย/ว่าง, สมัครโพสต์ของตัวเอง, หรือโพสต์ปิดรับแล้ว
+- `400 Bad Request` — JSON parse ไม่ได้
+
+## 8. `GET /api/posts/{id}/applications`
+
+ต้องล็อกอินและเป็นเจ้าของโพสต์ คืนใบสมัครทั้งหมดของโพสต์ เรียงตาม `application.id` จากน้อยไปมาก
+
+### Success — `200 OK`
+
+```json
+[
+  {
+    "id": 3,
+    "post_id": 1,
+    "status": "accepted",
+    "message": "สนใจร่วมทีมครับ",
+    "created_at": "2026-11-08 11:00:00",
+    "applicant": {
+      "id": 8,
+      "display_name": "สมหญิง ตั้งใจ",
+      "skills": [{ "id": 2, "name": "เขียนเว็บ" }],
+      "line_id": "somying.t"
+    }
+  }
+]
+```
+
+`applicant.line_id` มีเฉพาะใบสมัครที่ `accepted`; pending/rejected ไม่มี key นี้
+
+### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+- `403` — ผู้เรียกไม่ใช่เจ้าของโพสต์
+- `404` — ไม่มีโพสต์ที่มี id นี้
+
+## 9. `PATCH /api/applications/{id}`
+
+ต้องล็อกอินและเป็นเจ้าของโพสต์ของใบสมัครนั้น ใช้ตอบรับหรือปฏิเสธใบสมัครที่ยัง `pending`
+
+### Request fields
+
+| Field | Required | Rules |
+| --- | --- | --- |
+| `status` | yes | `accepted` หรือ `rejected` |
+
+### Success — `200 OK`
+
+response เป็น application object รูปแบบเดียวกับข้อ 7; เมื่อ `accepted` จะมี `applicant.line_id`
+
+เมื่อจำนวนใบสมัคร `accepted` ถึง `post.slots` ระบบจะเปลี่ยน `post.status` เป็น `closed` ใน transaction เดียวกัน
+
+### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+- `403` — ผู้เรียกไม่ใช่เจ้าของโพสต์
+- `404` — ไม่มีใบสมัครที่มี id นี้
+- `409 Conflict` — ใบสมัครถูกประมวลผลไปแล้ว (ไม่ใช่ `pending`)
+- `422` — `status` ไม่ใช่ `accepted`/`rejected`
+- `400 Bad Request` — JSON parse ไม่ได้
+
+## 10. `PATCH /api/posts/{id}`
+
+ต้องล็อกอินและเป็นเจ้าของโพสต์ ใช้ปิดรับสมัคร
+
+### Request fields
+
+| Field | Required | Rules |
+| --- | --- | --- |
+| `status` | yes | ต้องเป็น `closed` เท่านั้น |
+
+### Success — `200 OK`
+
+response เป็น post object รูปแบบเดียวกับข้อ 6 การปิดโพสต์ที่ปิดอยู่แล้วสำเร็จได้ (idempotent)
+
+### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+- `403` — ผู้เรียกไม่ใช่เจ้าของโพสต์
+- `404` — ไม่มีโพสต์ที่มี id นี้
+- `422` — `status` ไม่ใช่ `closed`
+- `400 Bad Request` — JSON parse ไม่ได้
+
 ## Error formats และ status codes
 
 | Status | ใช้เมื่อ |
 | --- | --- |
 | `200` | login สำเร็จ, อ่าน skills/feed/detail สำเร็จ |
-| `201` | register สำเร็จ, สร้าง post สำเร็จ |
+| `201` | register สำเร็จ, สร้าง post สำเร็จ, สมัครเข้าทีมสำเร็จ |
 | `400` | JSON body parse ไม่ได้ |
 | `401` | login ไม่สำเร็จ หรือ protected endpoint ไม่มี/ไม่ยอมรับ token |
-| `403` | ยังไม่ถูกใช้ (สงวนไว้สำหรับ authenticated user ที่ไม่มีสิทธิ์ เช่น แก้โพสต์ของคนอื่นในงานถัดไป) |
-| `404` | route ไม่มีอยู่ (strict parsing), โพสต์ไม่มีอยู่, หรือเรียก path `/api/*` ที่มีอยู่ด้วย HTTP method ที่ไม่รองรับ |
+| `403` | authenticated user ไม่มีสิทธิ์ เช่น ไม่ใช่เจ้าของโพสต์แต่เรียกดู/แก้ใบสมัครหรือปิดโพสต์ |
+| `404` | route ไม่มีอยู่ (strict parsing), โพสต์/ใบสมัครไม่มีอยู่, หรือเรียก path `/api/*` ที่มีอยู่ด้วย HTTP method ที่ไม่รองรับ |
+| `409` | สมัครโพสต์เดิมซ้ำ หรือใบสมัครถูกประมวลผลไปแล้ว |
 | `422` | validation ไม่ผ่าน |
 | `429` | อยู่นอกรอบ (rate limit) |
 
-- `401`, `403`, `404` ใช้ object ของ Yii2 ที่มี `name`, `message`, `code`, `status` และอาจมี `type`
+- `401`, `403`, `404`, `409` ใช้ object ของ Yii2 ที่มี `name`, `message`, `code`, `status` และอาจมี `type`
 - `422` ใช้ array ของ `{field, message}`
 - error body ทั้งหมดข้างต้นเป็น JSON ตาม contract ของ client ที่ส่ง `Accept: application/json`; ถ้า client ส่ง `Accept: application/xml` หรือ Accept แบบ browser framework จะตอบ XML ซึ่งไม่อยู่ใน contract
 - ตัวอย่าง `400`:
@@ -329,4 +465,4 @@ Seed มีหกรายการนี้เสมอและเรียง
 - `enableStrictParsing` เปิดอยู่ จึงไม่มี bare controller path (`/auth/login`, `/skill/index` ฯลฯ) อีกต่อไป ทุก path ที่ไม่ตรงกับ contract ตอบ `404` ทั้งหมด; การเรียก path `/api/*` ที่มีอยู่ด้วย method ผิดก็ได้ `404` เพราะ rule ผูก method ไว้
 - `web/index.php` เปิด `YII_DEBUG` เป็น `true` ใน development จึงอาจเห็น field `previous` เพิ่มใน error object โดยเฉพาะ `404`; field ที่ควรพึ่งพาคือ `name`, `message`, `code`, `status`
 - ไม่มี CORS header เพราะ development ใช้ Vite proxy; production ต้องตั้ง Nginx แยก `/` และ `/api/*` ซึ่งอยู่นอกรอบปัจจุบัน
-- ยังไม่มี endpoint สำหรับ `/api/me`, application, logout หรือ profile
+- ยังไม่มี endpoint สำหรับ `/api/me`, logout หรือ profile

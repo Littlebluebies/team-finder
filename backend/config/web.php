@@ -31,6 +31,10 @@ return [
                 'POST api/posts' => 'post/create',
                 'GET api/posts' => 'post/index',
                 'GET api/posts/<id:\d+>' => 'post/view',
+                'POST api/posts/<id:\d+>/applications' => 'application/create',
+                'GET api/posts/<id:\d+>/applications' => 'application/index',
+                'PATCH api/applications/<id:\d+>' => 'application/update',
+                'PATCH api/posts/<id:\d+>' => 'post/close',
             ],
         ],
         'log' => [
