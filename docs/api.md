@@ -1,6 +1,6 @@
-# Team Finder API — Day 1
+# Team Finder API
 
-Source of truth สำหรับ API ที่ implement แล้วใน Day 1 มีเพียงสาม endpoint นี้เท่านั้น หากพฤติกรรมเปลี่ยน ต้องแก้ไฟล์นี้ในชุดการเปลี่ยนแปลงเดียวกัน
+Source of truth สำหรับ API ที่ implement แล้ว หากพฤติกรรมเปลี่ยน ต้องแก้ไฟล์นี้ในชุดการเปลี่ยนแปลงเดียวกัน
 
 - Base URL (development): `http://localhost:8080/api`
 - Frontend เรียกผ่าน `/api` แล้ว Vite proxy ไป `http://localhost:8080`
@@ -9,25 +9,30 @@ Source of truth สำหรับ API ที่ implement แล้วใน Da
 - JSON ที่ parse ไม่ได้คืน `400`
 - Timezone ของแอป: `Asia/Bangkok`
 
-## Routing aliases (non-contract)
+## Routing
 
-`backend/config/web.php` ไม่ได้เปิด `enableStrictParsing` ทำให้ Yii default routing เปิด path ของ controller/action ตรง ๆ เพิ่มจาก URL rules:
+`enableStrictParsing` เปิดอยู่แล้ว มีเพียง path ที่ประกาศในไฟล์นี้เท่านั้นที่ตอบได้ path อื่นทั้งหมด (รวมถึง bare controller path เช่น `/post/index`) ตอบ `404`
 
-- Contract มีเพียง `/api/auth/register`, `/api/auth/login`, `/api/skills`
-- `GET /skill/index` ตอบ `200` พร้อมรายการทักษะ; `GET /auth/login` และ `GET /auth/register` ตอบ `405` เพราะ `VerbFilter` ของ `yii\rest\Controller`
-- path เหล่านี้เป็นผลข้างเคียงของ default routing ห้ามใช้ใน client, test หรือเอกสาร; การปิดช่องทางนี้อยู่ในงาน Day 2 (`enableStrictParsing => true` หรือ catch-all 404 rule)
+| Method | Path | Auth |
+| --- | --- | --- |
+| POST | `/api/auth/register` | ไม่ต้อง |
+| POST | `/api/auth/login` | ไม่ต้อง |
+| GET | `/api/skills` | ไม่ต้อง |
+| POST | `/api/posts` | ต้อง (Bearer token) |
+| GET | `/api/posts` | ต้อง (Bearer token) |
+| GET | `/api/posts/{id}` | ต้อง (Bearer token) |
 
 ## Authentication และ token
 
-Day 1 ไม่มี endpoint ที่ต้องล็อกอิน ทั้งสาม endpoint เป็น public
+Endpoint ที่ระบุว่า "ต้อง" ล็อกอินต้องส่ง header `Authorization: Bearer <token>` ทุกครั้ง หากขาด header, token ผิด หรือ token หมดอายุ จะได้ `401 Unauthorized` ก่อนพิจารณาอย่างอื่น
 
-- Protected endpoint ในงานถัดไปต้องรับ header `Authorization: Bearer <token>`
 - Token ดิบสร้างด้วย CSPRNG ของ Yii2 มีความยาว 64 ตัวอักษร และส่งกลับเฉพาะ response ของ register/login
 - ฐานข้อมูลเก็บเฉพาะ SHA-256 hash (`user.access_token_hash`) พร้อม `user.access_token_expires_at`
 - Token มีอายุ 7 วัน (604800 วินาที) นับจากเวลาออก
 - Login สำเร็จทุกครั้งออก token ใหม่และแทนที่ token เดิม; token เก่าใช้ไม่ได้ทันที
 - Token ที่ผิดหรือหมดอายุต้องไม่ผ่านการยืนยันตัวตน
-- Day 1 ไม่ส่ง password, password hash, token hash หรือ `created_at` ใน response
+- ไม่ส่ง password, password hash, token hash หรือ `access_token_*` ใน response ใด ๆ
+- `line_id` ของผู้ใช้อื่นยังไม่เปิดเผยในทุก endpoint (`owner` ของ post มีเพียง `id` และ `display_name`)
 
 ## ค่าที่ใช้ร่วมกัน
 
@@ -35,8 +40,8 @@ Day 1 ไม่มี endpoint ที่ต้องล็อกอิน ทั
 - `display_name`, `faculty`, `major`, `line_id` ถูก trim
 - `user.skills` เรียงตาม `skill.id` จากน้อยไปมาก
 - `GET /api/skills` เรียงตาม `id` จากน้อยไปมาก
-- `created_at` ในฐานข้อมูลเป็น `YYYY-MM-DD HH:MM:SS` แต่ยังไม่ถูกส่งออกใน Day 1
-- `deadline` ในฐานข้อมูลเป็น `YYYY-MM-DD` และยังไม่มี endpoint ที่ใช้ใน Day 1
+- `created_at` ในฐานข้อมูลเป็น `YYYY-MM-DD HH:MM:SS`
+- `deadline` ในฐานข้อมูลเป็น `YYYY-MM-DD`
 
 ## 1. `POST /api/auth/register`
 
@@ -189,19 +194,108 @@ Token ที่ได้จะต่างจาก token เดิมเสม�
 
 Seed มีหกรายการนี้เสมอและเรียงตาม `id`
 
+## 4. `POST /api/posts`
+
+ต้องล็อกอิน สร้าง post และ `post_skill` ใน transaction เดียว `owner_id` มาจาก token เสมอ client ไม่ส่งเอง
+
+### Request fields
+
+| Field | Required | Rules |
+| --- | --- | --- |
+| `title` | yes | 1–200 characters after trim |
+| `description` | yes | string ยาวอย่างน้อย 1 ตัวอักษร |
+| `category` | yes | หนึ่งใน `course` / `contest` / `personal` |
+| `slots` | yes | integer 1–99 |
+| `deadline` | yes | วันที่รูปแบบ `YYYY-MM-DD` |
+| `skill_ids` | yes | non-empty array of unique positive integers; every id must exist in `skill` |
+
+### Request example
+
+```json
+{
+  "title": "หาทีมแข่ง hackathon",
+  "description": "ต้องการคนถ่ายภาพและเขียนคอนเทนต์",
+  "category": "contest",
+  "slots": 2,
+  "deadline": "2026-12-31",
+  "skill_ids": [3, 5]
+}
+```
+
+### Success — `201 Created`
+
+```json
+{
+  "id": 1,
+  "title": "หาทีมแข่ง hackathon",
+  "description": "ต้องการคนถ่ายภาพและเขียนคอนเทนต์",
+  "category": "contest",
+  "slots": 2,
+  "deadline": "2026-12-31",
+  "status": "open",
+  "created_at": "2026-11-08 10:00:00",
+  "owner": { "id": 7, "display_name": "สมชาย ใจดี" },
+  "skills": [
+    { "id": 3, "name": "ถ่ายภาพ" },
+    { "id": 5, "name": "เขียนคอนเทนต์" }
+  ]
+}
+```
+
+### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+- `422` — validation ไม่ผ่าน (array ของ `{field, message}` เหมือน register)
+- `400 Bad Request` — JSON parse ไม่ได้
+
+## 5. `GET /api/posts`
+
+ต้องล็อกอิน คืนโพสต์ทั้งหมด เรียงตาม `id` จากมากไปน้อย (ใหม่สุดก่อน) ยังไม่มีตัวกรอง/แบ่งหน้าในรอบนี้
+
+### Success — `200 OK`
+
+```json
+[
+  {
+    "id": 2,
+    "title": "…",
+    "description": "…",
+    "category": "course",
+    "slots": 3,
+    "deadline": "2026-12-15",
+    "status": "open",
+    "created_at": "2026-11-08 10:05:00",
+    "owner": { "id": 8, "display_name": "…" },
+    "skills": [{ "id": 4, "name": "UI/UX" }]
+  }
+]
+```
+
+### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+
+## 6. `GET /api/posts/{id}`
+
+ต้องล็อกอิน คืนโพสต์หนึ่งรายการในรูปแบบเดียวกับ success ของ `POST /api/posts`
+
+### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+- `404` — ไม่มีโพสต์ที่มี id นี้
+
 ## Error formats และ status codes
 
 | Status | ใช้เมื่อ |
 | --- | --- |
-| `200` | login สำเร็จ, อ่าน skills สำเร็จ |
-| `201` | register สำเร็จ |
+| `200` | login สำเร็จ, อ่าน skills/feed/detail สำเร็จ |
+| `201` | register สำเร็จ, สร้าง post สำเร็จ |
 | `400` | JSON body parse ไม่ได้ |
-| `401` | login ไม่สำเร็จ |
-| `403` | ยังไม่ถูกใช้ใน Day 1 (สงวนไว้สำหรับ authenticated user ที่ไม่มีสิทธิ์) |
-| `404` | route ไม่มีอยู่ หรือเรียก path `/api/*` ที่มีอยู่ด้วย HTTP method ที่ไม่รองรับ |
-| `405` | เกิดเฉพาะ bare controller path จาก Yii default routing (เช่น `GET /auth/login`) ไม่เกิดบน `/api/*` |
+| `401` | login ไม่สำเร็จ หรือ protected endpoint ไม่มี/ไม่ยอมรับ token |
+| `403` | ยังไม่ถูกใช้ (สงวนไว้สำหรับ authenticated user ที่ไม่มีสิทธิ์ เช่น แก้โพสต์ของคนอื่นในงานถัดไป) |
+| `404` | route ไม่มีอยู่ (strict parsing), โพสต์ไม่มีอยู่, หรือเรียก path `/api/*` ที่มีอยู่ด้วย HTTP method ที่ไม่รองรับ |
 | `422` | validation ไม่ผ่าน |
-| `429` | อยู่นอกรอบ Day 1 (rate limit) |
+| `429` | อยู่นอกรอบ (rate limit) |
 
 - `401`, `403`, `404` ใช้ object ของ Yii2 ที่มี `name`, `message`, `code`, `status` และอาจมี `type`
 - `422` ใช้ array ของ `{field, message}`
@@ -232,7 +326,7 @@ Seed มีหกรายการนี้เสมอและเรียง
 
 ### หมายเหตุที่ตรวจพบจริง
 
-- URL rules ผูก method ไว้ (`POST api/auth/register`, `POST api/auth/login`, `GET api/skills`) การเรียก path `/api/*` ที่มีอยู่ด้วย method ผิดจะได้ `404 Not Found`; ส่วน bare controller path จาก default routing (เช่น `GET /auth/login`) จะได้ `405 Method Not Allowed` จาก `VerbFilter`
+- `enableStrictParsing` เปิดอยู่ จึงไม่มี bare controller path (`/auth/login`, `/skill/index` ฯลฯ) อีกต่อไป ทุก path ที่ไม่ตรงกับ contract ตอบ `404` ทั้งหมด; การเรียก path `/api/*` ที่มีอยู่ด้วย method ผิดก็ได้ `404` เพราะ rule ผูก method ไว้
 - `web/index.php` เปิด `YII_DEBUG` เป็น `true` ใน development จึงอาจเห็น field `previous` เพิ่มใน error object โดยเฉพาะ `404`; field ที่ควรพึ่งพาคือ `name`, `message`, `code`, `status`
-- ไม่มี CORS header เพราะ development ใช้ Vite proxy; production ต้องตั้ง Nginx แยก `/` และ `/api/*` ซึ่งอยู่นอกรอบ Day 1
-- ไม่มี endpoint สำหรับ `/api/me`, post, feed, application, logout หรือ profile ใน Day 1
+- ไม่มี CORS header เพราะ development ใช้ Vite proxy; production ต้องตั้ง Nginx แยก `/` และ `/api/*` ซึ่งอยู่นอกรอบปัจจุบัน
+- ยังไม่มี endpoint สำหรับ `/api/me`, application, logout หรือ profile

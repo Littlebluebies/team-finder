@@ -7,7 +7,7 @@ Team Finder คือเว็บหาทีมและสมาชิกโ�
 - Spec ที่อนุมัติ: [`docs/superpowers/specs/2026-11-07-day-1-full-stack-design.md`](docs/superpowers/specs/2026-11-07-day-1-full-stack-design.md)
 - กฎสำหรับผู้พัฒนาต่อ: [`AGENTS.md`](AGENTS.md)
 
-## ขอบเขต Day 1
+## ขอบเขตที่ส่งมอบแล้ว
 
 สิ่งที่ส่งมอบ:
 
@@ -15,12 +15,15 @@ Team Finder คือเว็บหาทีมและสมาชิกโ�
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/skills`
-- หน้า `/register`, `/login` และหน้า `/` สำหรับยืนยันสถานะล็อกอินและออกจากระบบ
+- `POST /api/posts`, `GET /api/posts`, `GET /api/posts/{id}` (ต้องส่ง Bearer token, 401 เมื่อ token ไม่ถูกต้อง)
+- หน้า `/register`, `/login`, กระดานหาทีม (`/`), หน้าสร้างโพสต์ (`/posts/new`) และหน้ารายละเอียดโพสต์ (`/posts/:id`)
+- Strict parsing: มีเพียง path ตาม `docs/api.md` เท่านั้นที่ตอบได้
 - Smoke tests ฝั่ง backend, lint/build ฝั่ง frontend และเอกสาร API/ติดตั้ง/handoff
 
 สิ่งที่ยังไม่ทำในรอบนี้:
 
-- Feed, สร้าง/ดูโพสต์, ตัวกรอง, สมัครเข้าทีม, รับ/ปฏิเสธใบสมัคร, ปิดโพสต์
+- ตัวกรอง/แบ่งหน้าของ feed, แก้ไข/ปิดโพสต์
+- สมัครเข้าทีม, รับ/ปฏิเสธใบสมัคร
 - `/api/me*`, หน้าโปรไฟล์, การเปิดเผย LINE ID ของผู้ใช้อื่น
 - Rate limit, notification, chat, admin, รูปโปรไฟล์
 - Nginx, HTTPS, production deployment
@@ -95,6 +98,7 @@ Backend รันจาก `backend` (ต้องเปิด API server ที
 php tests/schema_smoke.php
 php tests/auth_model_smoke.php
 php tests/api_smoke.php
+php tests/post_smoke.php
 ```
 
 `api_smoke.php` รับ `API_URL` ได้ แต่ยอมให้ยิงเฉพาะ host `localhost`, `127.0.0.1`, `::1` เท่านั้น

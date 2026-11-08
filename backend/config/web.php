@@ -6,6 +6,7 @@ return [
     'timeZone' => 'Asia/Bangkok',
     'components' => [
         'request' => [
+            'enableCsrfCookie' => false,
             'parsers' => [
                 'application/json' => yii\web\JsonParser::class,
             ],
@@ -21,11 +22,15 @@ return [
         'db' => require __DIR__ . '/db.php',
         'urlManager' => [
             'enablePrettyUrl' => true,
+            'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
                 'POST api/auth/register' => 'auth/register',
                 'POST api/auth/login' => 'auth/login',
                 'GET api/skills' => 'skill/index',
+                'POST api/posts' => 'post/create',
+                'GET api/posts' => 'post/index',
+                'GET api/posts/<id:\d+>' => 'post/view',
             ],
         ],
         'log' => [
