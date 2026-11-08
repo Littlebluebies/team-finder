@@ -51,4 +51,33 @@ class Application extends ActiveRecord
             'applicant' => $applicant,
         ];
     }
+
+    public function toMyArray()
+    {
+        $postStatus = $this->post->status;
+        if ($postStatus === 'open' && $this->post->deadline < date('Y-m-d')) {
+            $postStatus = 'closed';
+        }
+
+        $owner = [
+            'id' => (int)$this->post->owner->id,
+            'display_name' => $this->post->owner->display_name,
+        ];
+        if ($this->status === 'accepted') {
+            $owner['line_id'] = $this->post->owner->line_id;
+        }
+
+        return [
+            'id' => (int)$this->id,
+            'status' => $this->status,
+            'message' => $this->message,
+            'created_at' => $this->created_at,
+            'post' => [
+                'id' => (int)$this->post->id,
+                'title' => $this->post->title,
+                'status' => $postStatus,
+                'owner' => $owner,
+            ],
+        ];
+    }
 }

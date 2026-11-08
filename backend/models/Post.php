@@ -42,14 +42,22 @@ class Post extends ActiveRecord
             $owner['line_id'] = $this->owner->line_id;
         }
 
+        $status = $this->status;
+        if ($status === 'open' && $this->deadline < date('Y-m-d')) {
+            $status = 'closed';
+        }
+
         return [
             'id' => (int)$this->id,
             'title' => $this->title,
             'description' => $this->description,
             'category' => $this->category,
             'slots' => (int)$this->slots,
+            'accepted_count' => (int)Application::find()
+                ->where(['post_id' => $this->id, 'status' => 'accepted'])
+                ->count(),
             'deadline' => $this->deadline,
-            'status' => $this->status,
+            'status' => $status,
             'created_at' => $this->created_at,
             'is_owner' => $isOwner,
             'viewer_application' => $application === null ? null : [

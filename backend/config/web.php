@@ -35,6 +35,10 @@ return [
                 'GET api/posts/<id:\d+>/applications' => 'application/index',
                 'PATCH api/applications/<id:\d+>' => 'application/update',
                 'PATCH api/posts/<id:\d+>' => 'post/close',
+                'GET api/me' => 'me/view',
+                'PUT api/me' => 'me/update',
+                'GET api/me/posts' => 'me/posts',
+                'GET api/me/applications' => 'me/applications',
             ],
         ],
         'log' => [

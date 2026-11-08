@@ -35,10 +35,60 @@ class PostController extends Controller
 
     public function actionIndex()
     {
+        $request = Yii::$app->request;
+        $query = Post::find()->with(['owner', 'skills']);
+
+        $category = (string)$request->getQueryParam('category', '');
+        if (in_array($category, ['course', 'contest', 'personal'], true)) {
+            $query->andWhere(['post.category' => $category]);
+        }
+
+        $keyword = trim((string)$request->getQueryParam('q', ''));
+        if ($keyword !== '') {
+            $query->andWhere(['or',
+                ['like', 'post.title', $keyword],
+                ['like', 'post.description', $keyword],
+            ]);
+        }
+
+        $skillIds = $this->querySkillIds();
+        if ($skillIds !== []) {
+            $query->innerJoin('post_skill ps', 'ps.post_id = post.id')
+                ->andWhere(['ps.skill_id' => $skillIds])
+                ->distinct();
+        }
+
+        if ($request->getQueryParam('include_closed') !== '1') {
+            $query->andWhere(['post.status' => 'open'])
+                ->andWhere(['>=', 'post.deadline', date('Y-m-d')]);
+        }
+
         $viewer = Yii::$app->user->getIdentity();
         return array_map(static function ($post) use ($viewer) {
             return $post->toApiArray($viewer);
-        }, Post::find()->with(['owner', 'skills'])->orderBy(['post.id' => SORT_DESC])->all());
+        }, $query->orderBy(['post.id' => SORT_DESC])->all());
+    }
+
+    private function querySkillIds()
+    {
+        $ids = [];
+        $param = Yii::$app->request->getQueryParam('skill');
+        if (is_array($param)) {
+            $ids = $param;
+        } elseif (is_string($param) && $param !== '') {
+            $ids = explode(',', $param);
+        }
+
+        // ponytail: support repeated ?skill=1&skill=2 which PHP collapses to the last value.
+        preg_match_all('/(?:^|&)skill(?:\[\])?=([^&]*)/', Yii::$app->request->getQueryString(), $matches);
+        foreach ($matches[1] as $value) {
+            $ids[] = urldecode($value);
+        }
+
+        return array_values(array_unique(array_filter(
+            array_map('intval', $ids),
+            static fn($id) => $id > 0
+        )));
     }
 
     public function actionView($id)

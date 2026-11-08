@@ -1,7 +1,12 @@
 import { apiFetch } from './client'
 
-export function fetchPosts() {
-  return apiFetch('/posts', { auth: true })
+export function fetchPosts(params = {}) {
+  const search = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== '' && value !== null && value !== undefined) search.set(key, value)
+  })
+  const query = search.toString()
+  return apiFetch(`/posts${query ? `?${query}` : ''}`, { auth: true })
 }
 
 export function fetchPost(id) {

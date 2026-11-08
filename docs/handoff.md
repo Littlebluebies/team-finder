@@ -1,11 +1,11 @@
-# Team Finder — Handoff (Day 1–3)
+# Team Finder — Handoff (Day 1–4)
 
 วันที่ตรวจ: 2026-11-08  
-ขอบเขต: เฉพาะสิ่งที่ implement และตรวจแล้วจริงถึง Day 3
+ขอบเขต: เฉพาะสิ่งที่ implement และตรวจแล้วจริงถึง Day 4
 
 ## สิ่งที่ใช้งานได้
 
-### API (10 endpoints)
+### API (14 endpoints)
 
 | Method | Path | Auth | Success |
 | --- | --- | --- | --- |
@@ -13,35 +13,43 @@
 | POST | `/api/auth/login` | ไม่ต้อง | `200` + token ใหม่ + user |
 | GET | `/api/skills` | ไม่ต้อง | `200` + array 6 ทักษะ |
 | POST | `/api/posts` | Bearer | `201` + post |
-| GET | `/api/posts` | Bearer | `200` + feed เรียงใหม่สุดก่อน |
+| GET | `/api/posts` | Bearer | `200` + feed (กรอง `skill/category/q`, `include_closed`) |
 | GET | `/api/posts/{id}` | Bearer | `200` + post + `is_owner`/`viewer_application`, `404` ถ้าไม่พบ |
 | POST | `/api/posts/{id}/applications` | Bearer | `201` + application, `409` ซ้ำ, `422` เงื่อนไขไม่ผ่าน |
 | GET | `/api/posts/{id}/applications` | Bearer (owner) | `200` + รายการใบสมัคร, `403` ถ้าไม่ใช่ owner |
 | PATCH | `/api/applications/{id}` | Bearer (owner) | `200` + application, `409` ถ้าประมวลผลแล้ว |
 | PATCH | `/api/posts/{id}` | Bearer (owner) | `200` + post ที่ปิดรับแล้ว |
+| GET | `/api/me` | Bearer | `200` + โปรไฟล์ตัวเอง |
+| PUT | `/api/me` | Bearer | `200` + โปรไฟล์ที่แก้แล้ว |
+| GET | `/api/me/posts` | Bearer | `200` + โพสต์ของฉัน + `pending_count` |
+| GET | `/api/me/applications` | Bearer | `200` + ใบสมัครของฉัน |
 
 Contract ฉบับเต็มอยู่ที่ [`docs/api.md`](api.md)
 
 ### Application flow
 
 - สมัครได้ครั้งเดียวต่อโพสต์; `user_id` มาจาก token, client ส่งไม่ได้
-- สมัครโพสต์ตัวเองหรือโพสต์ที่ปิดแล้วได้ `422`
+- สมัครโพสต์ตัวเอง, โพสต์ที่ปิดแล้ว หรือโพสต์ที่เลย `deadline` ได้ `422`
 - owner เห็นรายชื่อผู้สมัครและ accept/reject ได้เท่านั้น; คนอื่นได้ `403`
 - accept แล้วจำนวน `accepted` ครบ `slots` → post เปลี่ยนเป็น `closed` ใน transaction เดียวกัน
 - LINE ID: owner เห็น `applicant.line_id` เฉพาะ accepted; ผู้สมัครเห็น `owner.line_id` เฉพาะเมื่อใบสมัครตัวเอง accepted; pending/rejected ไม่มี key `line_id`
+- Feed กรองด้วย `skill`, `category`, `q` และ `include_closed=1`; `accepted_count` ใช้แสดง "รับแล้ว x/y"
 
 ### Frontend routes
 
 | Route | พฤติกรรม |
 | --- | --- |
-| `/` | feed โพสต์ทั้งหมด (ต้องมี token) |
+| `/` | feed + ตัวกรองทักษะ/ประเภท/คำค้น (ต้องมี token) |
 | `/posts/new` | ฟอร์มสร้างโพสต์ (ต้องมี token) |
 | `/posts/:id` | รายละเอียดโพสต์, ฟอร์มสมัคร, สถานะใบสมัคร; owner เห็นรายชื่อผู้สมัคร + accept/reject + ปิดรับ |
+| `/me` | โปรไฟล์ของฉัน + แก้ไขโปรไฟล์/ทักษะ |
+| `/me/posts` | โพสต์ของฉัน รวมที่ปิดแล้ว + จำนวนรอตอบ |
+| `/me/applications` | ใบสมัครของฉัน + LINE ID เจ้าของเมื่อ accepted |
 | `/login` | ฟอร์มเข้าสู่ระบบ, 401 แสดงข้อความไทยในฟอร์ม |
 | `/register` | ฟอร์มสมัคร + เลือกทักษะจาก API จริง |
 | อื่น ๆ | redirect ไป `/` หรือ `/login` ตามสถานะ token |
 
-เมื่อมี token จะแสดง topbar พร้อมชื่อผู้ใช้ (ถ้ามีข้อมูล) และปุ่มออกจากระบบ
+เมื่อมี token จะแสดง topbar พร้อมเมนูกระดาน/โพสต์ของฉัน/ใบสมัครของฉัน/โปรไฟล์ และปุ่มออกจากระบบ
 
 ## สภาพแวดล้อมที่ตรวจ
 
@@ -146,10 +154,12 @@ FK `owner_id` → `user.id` ON DELETE RESTRICT ON UPDATE CASCADE
 - Protected endpoint ใช้ `yii\filters\auth\HttpBearerAuth`; token หาย/ผิด/หมดอายุได้ `401`
 - Register ใช้ `generatePasswordHash()` และ login ใช้ `validatePassword()`; ไม่มี plaintext password
 - Login สำเร็จทุกครั้งออก token ใหม่ทับ token เดิม; token เดิมใช้ไม่ได้ทันที
-- `POST /api/posts` derives `owner_id` จาก token; `POST /api/posts/{id}/applications` derives `user_id` จาก token
+- `POST /api/posts` derives `owner_id` จาก token; `POST /api/posts/{id}/applications` derives `user_id` จาก token; `PUT /api/me` แก้ได้เฉพาะ user ของ token
 - Feed ไม่คืน `line_id` ของใครทั้งสิ้น
 - Detail คืน `owner.line_id` เฉพาะเมื่อใบสมัครของผู้เรียกสถานะ `accepted`
 - Owner list คืน `applicant.line_id` เฉพาะใบสมัครที่ `accepted`
+- `GET /api/me` และ `PUT /api/me` คืน `line_id` ของเจ้าของบัญชีเท่านั้น
+- `GET /api/me/applications` คืน `post.owner.line_id` เฉพาะใบสมัครที่ `accepted`
 - Pending/rejected/ไม่มีใบสมัคร: ไม่มี key `line_id` เลย
 - Response register/login คืน `line_id` ของเจ้าของบัญชีเท่านั้น
 - Logout ฝั่งเว็บล้าง `localStorage` key `team_finder_token` เท่านั้น ไม่มี server-side revoke
@@ -166,18 +176,21 @@ FK `owner_id` → `user.id` ON DELETE RESTRICT ON UPDATE CASCADE
 | `php tests/api_smoke.php` | `API smoke test passed`; exit 0 |
 | `php tests/post_smoke.php` | `Post smoke test passed`; exit 0 |
 | `php tests/application_smoke.php` | `Application smoke test passed`; exit 0 |
-| `php -l` กับไฟล์ PHP 25 ไฟล์ใน `controllers`, `models`, `config`, `migrations`, `tests`, `web` | `No syntax errors detected` ทุกไฟล์; 0 failures |
+| `php tests/me_smoke.php` | `Me smoke test passed`; exit 0 |
+| `php -l` กับไฟล์ PHP 28 ไฟล์ใน `controllers`, `models`, `config`, `migrations`, `tests`, `web` | `No syntax errors detected` ทุกไฟล์; 0 failures |
 
-`post_smoke.php` ตรวจ: 401 เมื่อไม่มี/ใช้ token ผิด, create 201 และ owner มาจาก token, `status=open`, title/deadline/skills ตรง, ไม่มี `owner.line_id` หลุด, 422 สำหรับ title หาย/category ผิด/slots 0/skill ซ้ำ, 400 สำหรับ JSON เสีย, feed 200 เรียงใหม่สุดก่อน, detail 200, 404 สำหรับ id ที่ไม่มี, 404 สำหรับ bare path `/post/index`, และ 404 สำหรับ `DELETE /api/posts`
+`post_smoke.php` ตรวจ: 401 เมื่อไม่มี/ใช้ token ผิด, create 201 และ owner มาจาก token, `status=open`, title/deadline/skills ตรง, ไม่มี `owner.line_id` หลุด, 422 สำหรับ title หาย/category ผิด/slots 0/skill ซ้ำ, 400 สำหรับ JSON เสีย, feed 200 เรียงใหม่สุดก่อน, filter `category`/`skill`/`skill` ซ้ำ/`q`, `include_closed=1`, `accepted_count`, โพสต์เลย deadline ถือว่าปิดและสมัครไม่ได้, detail 200, 404 สำหรับ id ที่ไม่มี, 404 สำหรับ bare path `/post/index`, และ 404 สำหรับ `DELETE /api/posts`
 
 `application_smoke.php` ตรวจ: 401 ทุก application endpoint, apply 201, duplicate 409, own post 422, message หาย 422, non-owner list/update 403, owner list 200, detail `is_owner`/`viewer_application`, pending ไม่มี `line_id`, accept 200 + auto-close เมื่อ slots ครบ, accepted เห็น `line_id` ทั้งสองฝั่ง, reject ไม่มี `line_id`, apply โพสต์ปิด 422, close post idempotent 200, unknown post/application 404, malformed JSON 400
+
+`me_smoke.php` ตรวจ: 401 ทุก `/api/me*`, `GET /me` 200, `PUT /me` 200 + แทนที่ทักษะ, 422 year ผิด/display_name หาย/skill ไม่มีจริง, 400 JSON เสีย, `/me/posts` 200 + `pending_count` + โพสต์ปิดยังอยู่, `/me/applications` 200 + owner `line_id` เฉพาะ accepted และไม่หลุดตอน pending/rejected
 
 ### Frontend (จาก `frontend`)
 
 | Command | ผล |
 | --- | --- |
 | `npm run lint` | `oxlint` ไม่มี error/warning; exit 0 |
-| `npm run build` | Vite 8.3.6, 35 modules transformed, `built in 203ms`; `dist/index.html` 0.53 kB, CSS 4.98 kB, JS 279.50 kB; exit 0 |
+| `npm run build` | Vite 8.3.6, 39 modules transformed, `built in 181ms`; `dist/index.html` 0.53 kB, CSS 5.84 kB, JS 290.37 kB; exit 0 |
 
 ### HTTP ที่ตรวจซ้ำในรอบ handoff
 
@@ -189,7 +202,7 @@ FK `owner_id` → `user.id` ON DELETE RESTRICT ON UPDATE CASCADE
 | `GET /api/posts/999999` ไม่มี token | 401 (auth ทำงานก่อนตรวจ resource) |
 | `GET /api/posts/999999` พร้อม token | 404 (ตรวจใน `post_smoke.php`) |
 
-หลังรัน smoke tests: `user` = 1 (demo account ที่สร้างไว้ลองใช้งาน), `post` = 0, `application` = 0
+หลังรัน smoke tests: `user` = 1 (demo account), `post` = 1 (โพสต์ที่ผู้ใช้สร้างเอง ไม่ใช่ข้อมูลจาก test), `application` = 0
 
 ### Secret และ source scan
 
@@ -214,7 +227,9 @@ Day 1 (Task 6 reviewer รัน Chromium จริงกับ backend + Vite d
 
 Day 2 frontend (feed/create/detail) ยังไม่ได้รัน browser flow ในรอบนี้; ตรวจด้วย `npm run lint`, `npm run build`, `post_smoke.php` และ HTTP จริงเท่านั้น
 
-Day 3 (apply/owner list/accept/reject/close) ยังไม่ได้รัน browser flow เช่นกัน; ตรวจด้วย `application_smoke.php`, `npm run lint` และ `npm run build` ก่อนส่งงานควรรัน browser flow ของ feed/create/detail/application ครบวงจรอีกครั้ง
+Day 3 (apply/owner list/accept/reject/close) ยังไม่ได้รัน browser flow เช่นกัน; ตรวจด้วย `application_smoke.php`, `npm run lint` และ `npm run build`
+
+Day 4 (feed filter, `/me`, `/me/posts`, `/me/applications`) ยังไม่ได้รัน browser flow; ตรวจด้วย `post_smoke.php`, `me_smoke.php`, `npm run lint` และ `npm run build` ก่อนส่งงานควรรัน browser flow ของ flow หลักครบวงจรอีกครั้ง
 
 ## ไฟล์ที่เป็น local-only และไม่ควร commit
 
@@ -233,12 +248,12 @@ Day 3 (apply/owner list/accept/reject/close) ยังไม่ได้รั�
 
 ## ข้อจำกัดที่รู้อยู่
 
-- ไม่มี `/api/me`; หลัง reload หน้า `/` รู้แค่ว่ามี token ไม่รู้ชื่อผู้ใช้ และไม่ตรวจว่า token ยังไม่หมดอายุ
+- `/api/me` มีแล้ว แต่ frontend ยังไม่เรียกตอนเริ่มแอป; หลัง reload topbar ยังไม่แสดงชื่อจนกว่าจะเปิดหน้า `/me`
 - Token เก็บใน `localStorage`; ถ้า token หมดอายุระหว่างใช้งาน จะรู้เมื่อมี request ที่ใช้ token
 - Logout ไม่ revoke token ฝั่ง server; token เดิมยังใช้ได้จนหมดอายุ 7 วัน
 - ใบสมัครที่ rejected ไม่สามารถสมัครโพสต์เดิมซ้ำได้เพราะ unique constraint; ยังไม่มี flow ให้ owner เปลี่ยนคำตัดสิน
 - ยังไม่มีการแจ้งเตือนเมื่อมีผู้สมัครหรือเมื่อใบสมัครถูกตอบรับ
-- Feed ยังไม่มี pagination, filter, search; คืนโพสต์ทั้งหมดเรียงใหม่สุดก่อน
+- Feed มี filter `skill/category/q` และ `include_closed` แล้ว แต่ยังไม่มี pagination
 - ยังไม่มีแก้ไข/ลบโพสต์; การปิดโพสต์ทำได้อย่างเดียว
 - อ่าน feed/detail ต้องมี token; ยังไม่มี public read
 - ไม่มี rate limit, lockout, email verification, password reset
@@ -252,24 +267,24 @@ Day 3 (apply/owner list/accept/reject/close) ยังไม่ได้รั�
 - ไฟล์ template ที่ยังไม่ใช้ (`src/assets/hero.png`, `react.svg`, `vite.svg`, `public/icons.svg`) ยังอยู่
 - มี demo user `demo@teamfinder.local` ใน local DB สำหรับลองใช้งาน (ไม่ใช่ seed ใน migration และไม่ควรใช้ใน production)
 
-## สิ่งที่อยู่นอกรอบ Day 3
+## สิ่งที่อยู่นอกรอบ Day 4
 
-- `/api/me*`, profile
-- Feed filter/pagination/search
 - Notification, chat, admin, profile image
 - Nginx, HTTPS, production deployment
+- Rate limit, lockout, email verification, password reset
 
-## งานถัดไป — Day 4
+## งานถัดไป — Day 5
 
-1. เพิ่ม browser flow test จริงของ feed/create/detail/apply/accept/reject/close และแก้ UI ที่พบปัญหา
-2. พิจารณา `/api/me` เพื่อให้ topbar แสดงชื่อหลัง reload และตรวจอายุ token
-3. เพิ่ม pagination/filter ของ feed และการแก้ไข/ลบโพสต์ถ้าอยู่ใน scope
-4. ทบทวน UX ของใบสมัครที่ rejected และการแจ้งเตือน
+1. รัน browser flow จริงครบวงจร: register/login → feed/filter → create → apply → accept/reject → close → `/me` ทั้งสามหน้า
+2. เพิ่ม Nginx + PHP-FPM + HTTPS config ตัวอย่างและคู่มือ deploy (ต้องมี server/domain/credential จากผู้ใช้)
+3. ทดสอบกับผู้ใช้จริง 3–5 คน แล้วแก้ UI/UX ตามผล
+4. อัปเดต README/handoff ให้ตรง production
 
 ## สถานะ Git
 
 - Repository: `https://github.com/Littlebluebies/team-finder.git`
 - Branch หลัก: `main`
-- Day 3 ยังไม่ commit; Day 2 commit ล่าสุดคือ `b44dca7` (`feat: Day 2 post create, feed and detail with bearer auth`) และ handoff Day 2 คือ `1ecf3ae`
+- Day 3 commit ล่าสุด: `e51371c` (`feat: Day 3 applications, accept/reject and close post with accepted-only LINE ID`)
+- Day 4 ยังไม่ commit
 - ดู commit hash ล่าสุดได้จาก `git log --oneline -1` หรือหน้า repository
 - การกระทำกับ Git ทุกชนิดหลังจากนี้ต้องได้รับการยืนยันใหม่จากผู้ใช้ก่อน

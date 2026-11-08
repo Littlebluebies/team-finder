@@ -1,11 +1,14 @@
 import { useState } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { clearToken, getToken, saveToken } from './api/client'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import FeedPage from './pages/FeedPage'
 import CreatePostPage from './pages/CreatePostPage'
 import PostDetailPage from './pages/PostDetailPage'
+import ProfilePage from './pages/ProfilePage'
+import MyPostsPage from './pages/MyPostsPage'
+import MyApplicationsPage from './pages/MyApplicationsPage'
 
 export default function App() {
   const [token, setToken] = useState(getToken)
@@ -27,7 +30,13 @@ export default function App() {
     <>
       {token && (
         <header className="topbar">
-          <span className="brand">TEAM FINDER</span>
+          <Link className="brand" to="/">TEAM FINDER</Link>
+          <nav className="topbar-nav">
+            <Link to="/">กระดาน</Link>
+            <Link to="/me/posts">โพสต์ของฉัน</Link>
+            <Link to="/me/applications">ใบสมัครของฉัน</Link>
+            <Link to="/me">โปรไฟล์</Link>
+          </nav>
           <div className="topbar-actions">
             {user && <span className="topbar-user">{user.display_name}</span>}
             <button className="button secondary" type="button" onClick={logout}>ออกจากระบบ</button>
@@ -38,6 +47,9 @@ export default function App() {
         <Route path="/" element={token ? <FeedPage /> : <Navigate to="/login" replace />} />
         <Route path="/posts/new" element={token ? <CreatePostPage /> : <Navigate to="/login" replace />} />
         <Route path="/posts/:id" element={token ? <PostDetailPage /> : <Navigate to="/login" replace />} />
+        <Route path="/me" element={token ? <ProfilePage /> : <Navigate to="/login" replace />} />
+        <Route path="/me/posts" element={token ? <MyPostsPage /> : <Navigate to="/login" replace />} />
+        <Route path="/me/applications" element={token ? <MyApplicationsPage /> : <Navigate to="/login" replace />} />
         <Route path="/login" element={token ? <Navigate to="/" replace /> : <LoginPage onAuth={handleAuth} />} />
         <Route path="/register" element={token ? <Navigate to="/" replace /> : <RegisterPage onAuth={handleAuth} />} />
         <Route path="*" element={<Navigate to={token ? '/' : '/login'} replace />} />

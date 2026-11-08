@@ -15,18 +15,20 @@ Team Finder คือเว็บหาทีมและสมาชิกโ�
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/skills`
-- `POST /api/posts`, `GET /api/posts`, `GET /api/posts/{id}`, `PATCH /api/posts/{id}` (ต้องส่ง Bearer token, 401 เมื่อ token ไม่ถูกต้อง)
+- `POST /api/posts`, `GET /api/posts` (กรอง `skill/category/q`), `GET /api/posts/{id}`, `PATCH /api/posts/{id}` (ต้องส่ง Bearer token, 401 เมื่อ token ไม่ถูกต้อง)
 - `POST /api/posts/{id}/applications`, `GET /api/posts/{id}/applications`, `PATCH /api/applications/{id}` (owner เท่านั้นสำหรับ list/update)
-- หน้า `/register`, `/login`, กระดานหาทีม (`/`), หน้าสร้างโพสต์ (`/posts/new`) และหน้ารายละเอียดโพสต์ (`/posts/:id`) พร้อมฟอร์มสมัครและเครื่องมือ owner
+- `GET /api/me`, `PUT /api/me`, `GET /api/me/posts`, `GET /api/me/applications`
+- หน้า `/register`, `/login`, กระดานหาทีม (`/`) พร้อมตัวกรอง, หน้าสร้างโพสต์ (`/posts/new`), หน้ารายละเอียดโพสต์ (`/posts/:id`) พร้อมฟอร์มสมัครและเครื่องมือ owner
+- หน้าโปรไฟล์ (`/me`), โพสต์ของฉัน (`/me/posts`), ใบสมัครของฉัน (`/me/applications`)
 - LINE ID ของผู้ใช้อื่นเปิดเผยเฉพาะใบสมัครที่ `accepted` ของโพสต์เดียวกัน
 - Strict parsing: มีเพียง path ตาม `docs/api.md` เท่านั้นที่ตอบได้
 - Smoke tests ฝั่ง backend, lint/build ฝั่ง frontend และเอกสาร API/ติดตั้ง/handoff
 
 สิ่งที่ยังไม่ทำในรอบนี้:
 
-- ตัวกรอง/แบ่งหน้าของ feed, แก้ไข/ลบโพสต์
-- `/api/me*`, หน้าโปรไฟล์
-- Rate limit, notification, chat, admin, รูปโปรไฟล์
+- Pagination ของ feed, แก้ไข/ลบโพสต์
+- Notification, chat, admin, รูปโปรไฟล์
+- Rate limit, email verification, password reset
 - Nginx, HTTPS, production deployment
 
 ## สิ่งที่ต้องมี

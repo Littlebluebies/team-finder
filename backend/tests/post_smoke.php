@@ -93,6 +93,63 @@ try {
     check($status === 200, 'Detail did not return 200');
     check($detail['title'] === $payload['title'], 'Detail title differs');
     check(array_column($detail['skills'], 'id') === [3, 5], 'Detail skills differ');
+    check((int)$detail['accepted_count'] === 0, 'Detail accepted_count differs');
+
+    // Feed filters: category, skill, q, repeated skill, include_closed.
+    $secondPayload = [
+        'title' => 'หาทีมทำโปรเจกต์ส่วนตัว',
+        'description' => 'ต้องการคนเขียนเว็บ',
+        'category' => 'personal',
+        'slots' => 1,
+        'deadline' => '2026-12-31',
+        'skill_ids' => [4],
+    ];
+    [$status, $second] = request('POST', $baseUrl . '/posts', $secondPayload, $token);
+    check($status === 201, 'Second post did not return 201');
+    $postIds[] = $second['id'];
+
+    [$status, $feed] = request('GET', $baseUrl . '/posts?category=contest', null, $otherToken);
+    check($status === 200, 'Category filter did not return 200');
+    check(array_column($feed, 'id') === [(int)$created['id']], 'Category filter differs');
+
+    [$status, $feed] = request('GET', $baseUrl . '/posts?skill=4', null, $otherToken);
+    check($status === 200, 'Skill filter did not return 200');
+    check(array_column($feed, 'id') === [(int)$second['id']], 'Skill filter differs');
+
+    [$status, $feed] = request('GET', $baseUrl . '/posts?skill=3&skill=5', null, $otherToken);
+    check($status === 200, 'Repeated skill filter did not return 200');
+    check(array_column($feed, 'id') === [(int)$created['id']], 'Repeated skill filter differs');
+
+    [$status, $feed] = request('GET', $baseUrl . '/posts?' . http_build_query(['q' => 'โปรเจกต์ส่วนตัว']), null, $otherToken);
+    check($status === 200, 'Keyword filter did not return 200');
+    check(array_column($feed, 'id') === [(int)$second['id']], 'Keyword filter differs');
+
+    [$status, $feed] = request('GET', $baseUrl . '/posts?' . http_build_query(['q' => 'ไม่มีข้อความนี้']), null, $otherToken);
+    check($status === 200, 'Empty keyword filter did not return 200');
+    check($feed === [], 'Empty keyword filter should be empty');
+
+    [$status] = request('PATCH', $baseUrl . '/posts/' . $second['id'], ['status' => 'closed'], $token);
+    check($status === 200, 'Closing second post did not return 200');
+    [$status, $feed] = request('GET', $baseUrl . '/posts', null, $otherToken);
+    check($status === 200, 'Feed after close did not return 200');
+    check(!in_array((int)$second['id'], array_column($feed, 'id'), true), 'Closed post leaked into default feed');
+    [$status, $feed] = request('GET', $baseUrl . '/posts?include_closed=1', null, $otherToken);
+    check($status === 200, 'include_closed did not return 200');
+    check(in_array((int)$second['id'], array_column($feed, 'id'), true), 'Closed post missing with include_closed=1');
+
+    // Past deadline: effective status is closed and applications are rejected.
+    $expiredPayload = $payload;
+    $expiredPayload['title'] = 'โพสต์เลยกำหนด';
+    $expiredPayload['deadline'] = '2020-01-01';
+    [$status, $expired] = request('POST', $baseUrl . '/posts', $expiredPayload, $token);
+    check($status === 201, 'Expired post did not return 201');
+    check($expired['status'] === 'closed', 'Expired post status should be closed');
+    $postIds[] = $expired['id'];
+    [$status, $feed] = request('GET', $baseUrl . '/posts', null, $otherToken);
+    check($status === 200, 'Feed with expired post did not return 200');
+    check(!in_array((int)$expired['id'], array_column($feed, 'id'), true), 'Expired post leaked into default feed');
+    [$status] = request('POST', $baseUrl . '/posts/' . $expired['id'] . '/applications', ['message' => 'สายแล้ว'], $otherToken);
+    check($status === 422, 'Applying to expired post did not return 422');
 
     // 404: unknown post id.
     [$status] = request('GET', $baseUrl . '/posts/999999', null, $token);

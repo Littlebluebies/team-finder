@@ -50,7 +50,7 @@ class ApplicationController extends Controller
             $application->addError('post_id', 'You cannot apply to your own post.');
             return $application;
         }
-        if ($post->status !== 'open') {
+        if ($post->status !== 'open' || $post->deadline < date('Y-m-d')) {
             $application->addError('post_id', 'This post is closed.');
             return $application;
         }

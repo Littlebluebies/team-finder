@@ -192,3 +192,36 @@ textarea:focus { outline: 3px solid #3f6b4c; outline-offset: 2px; }
 @media (max-width: 520px) {
   .application-item { flex-direction: column; }
 }
+
+/* Day 4: feed filters, profile และหน้า /me */
+.topbar-nav { display: flex; gap: 14px; flex-wrap: wrap; }
+.topbar-nav a { color: #1e4b2f; font-weight: 650; text-decoration: none; }
+.topbar-nav a:hover { text-decoration: underline; }
+.filter-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr auto;
+  align-items: end;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 14px;
+  border: 1px solid #d8e0d3;
+  border-radius: 14px;
+  background: #fff;
+}
+.filter-bar .form-actions { flex-wrap: nowrap; }
+.filter-bar .button { min-height: 44px; padding: 10px 16px; }
+.filter-bar .button.secondary { margin-top: 0; }
+.alert-success { background: #e7f4e6; color: #1e4b2f; }
+.badge-pending { background: #fdf1d7; color: #7a5410; }
+.post-card h2 a, .card h2 a { color: inherit; }
+
+@media (max-width: 720px) {
+  .topbar { flex-wrap: wrap; }
+  .filter-bar { grid-template-columns: 1fr 1fr; }
+  .filter-bar .field:nth-child(3) { grid-column: 1 / -1; }
+}
+@media (max-width: 520px) {
+  .filter-bar { grid-template-columns: 1fr; }
+  .filter-bar .field:nth-child(3) { grid-column: auto; }
+}
+

@@ -25,6 +25,10 @@ Source of truth สำหรับ API ที่ implement แล้ว หา�
 | GET | `/api/posts/{id}/applications` | ต้อง (Bearer token), เจ้าของโพสต์เท่านั้น |
 | PATCH | `/api/applications/{id}` | ต้อง (Bearer token), เจ้าของโพสต์เท่านั้น |
 | PATCH | `/api/posts/{id}` | ต้อง (Bearer token), เจ้าของโพสต์เท่านั้น |
+| GET | `/api/me` | ต้อง (Bearer token) |
+| PUT | `/api/me` | ต้อง (Bearer token) |
+| GET | `/api/me/posts` | ต้อง (Bearer token) |
+| GET | `/api/me/applications` | ต้อง (Bearer token) |
 
 ## Authentication และ token
 
@@ -236,6 +240,7 @@ Seed มีหกรายการนี้เสมอและเรียง
   "description": "ต้องการคนถ่ายภาพและเขียนคอนเทนต์",
   "category": "contest",
   "slots": 2,
+  "accepted_count": 0,
   "deadline": "2026-12-31",
   "status": "open",
   "created_at": "2026-11-08 10:00:00",
@@ -257,7 +262,18 @@ Seed มีหกรายการนี้เสมอและเรียง
 
 ## 5. `GET /api/posts`
 
-ต้องล็อกอิน คืนโพสต์ทั้งหมด เรียงตาม `id` จากมากไปน้อย (ใหม่สุดก่อน) ยังไม่มีตัวกรอง/แบ่งหน้าในรอบนี้
+ต้องล็อกอิน คืนโพสต์ที่เปิดรับ เรียงตาม `id` จากมากไปน้อย (ใหม่สุดก่อน) ยังไม่มี pagination
+
+### Query parameters
+
+| Param | Rules | Behavior |
+| --- | --- | --- |
+| `skill` | positive integer, ส่งซ้ำหรือคั่นด้วย comma ได้ | คืนโพสต์ที่มีทักษะใดทักษะหนึ่งในรายการ |
+| `category` | `course` / `contest` / `personal` | กรองตามประเภท; ค่าอื่นถูกเพิกเฉย |
+| `q` | string | ค้นหาใน `title` และ `description` แบบ `LIKE` |
+| `include_closed` | `1` | รวมโพสต์ที่ปิดแล้วและโพสต์ที่เลย `deadline` |
+
+ค่าเริ่มต้นไม่ส่ง parameter ใด ๆ = เฉพาะโพสต์ `status=open` และ `deadline >= วันนี้`
 
 ### Success — `200 OK`
 
@@ -269,6 +285,7 @@ Seed มีหกรายการนี้เสมอและเรียง
     "description": "…",
     "category": "course",
     "slots": 3,
+    "accepted_count": 1,
     "deadline": "2026-12-15",
     "status": "open",
     "created_at": "2026-11-08 10:05:00",
@@ -279,6 +296,8 @@ Seed มีหกรายการนี้เสมอและเรียง
   }
 ]
 ```
+
+`accepted_count` คือจำนวนใบสมัครที่ `accepted` แล้ว ใช้แสดง "รับแล้ว 1/3"
 
 ### Errors
 
@@ -419,6 +438,99 @@ response เป็น post object รูปแบบเดียวกับข�
 - `422` — `status` ไม่ใช่ `closed`
 - `400 Bad Request` — JSON parse ไม่ได้
 
+## 11. `GET /api/me`
+
+ต้องล็อกอิน คืนข้อมูลโปรไฟล์ของผู้เรียกในรูปแบบเดียวกับ `user` ของ register/login รวม `line_id` ของตัวเองและ `skills`
+
+### Success — `200 OK`
+
+```json
+{
+  "id": 7,
+  "email": "student@example.com",
+  "display_name": "สมชาย ใจดี",
+  "faculty": "คณะเทคโนโลยีสื่อสารมวลชน",
+  "major": "สื่อสร้างสรรค์",
+  "year": 3,
+  "line_id": "somchai.j",
+  "bio": null,
+  "skills": [{ "id": 1, "name": "ตัดต่อ" }]
+}
+```
+
+### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+
+## 12. `PUT /api/me`
+
+ต้องล็อกอิน แก้โปรไฟล์ของตัวเองและแทนที่ `user_skill` ทั้งชุดใน transaction เดียว ไม่สามารถแก้ `email` หรือรหัสผ่านผ่าน endpoint นี้
+
+### Request fields
+
+| Field | Required | Rules |
+| --- | --- | --- |
+| `display_name` | yes | 1–100 characters after trim |
+| `faculty` | yes | 1–150 characters after trim |
+| `major` | yes | 1–150 characters after trim |
+| `year` | yes | integer 1–8 |
+| `line_id` | yes | 1–50 characters after trim |
+| `bio` | no | string max 2000; ค่าว่างกลายเป็น `null` |
+| `skill_ids` | yes | non-empty array of unique positive integers; every id must exist in `skill` |
+
+### Success — `200 OK`
+
+response เป็น user object รูปแบบเดียวกับข้อ 11
+
+### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+- `422` — validation ไม่ผ่าน (array ของ `{field, message}`)
+- `400 Bad Request` — JSON parse ไม่ได้
+
+## 13. `GET /api/me/posts`
+
+ต้องล็อกอิน คืนโพสต์ทั้งหมดที่ผู้เรียกเป็นเจ้าของ รวมโพสต์ที่ปิดแล้ว เรียงตาม `id` จากมากไปน้อย แต่ละรายการเป็น post object รูปแบบเดียวกับข้อ 6 และเพิ่ม:
+
+- `pending_count` — จำนวนใบสมัครที่ยัง `pending` ของโพสต์นั้น
+
+### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+
+## 14. `GET /api/me/applications`
+
+ต้องล็อกอิน คืนใบสมัครทั้งหมดของผู้เรียก เรียงตาม `id` จากมากไปน้อย
+
+### Success — `200 OK`
+
+```json
+[
+  {
+    "id": 31,
+    "status": "accepted",
+    "message": "สนใจร่วมทีมครับ",
+    "created_at": "2026-11-08 11:00:00",
+    "post": {
+      "id": 12,
+      "title": "หาคนตัดต่อคลิปส่งประกวด",
+      "status": "open",
+      "owner": {
+        "id": 5,
+        "display_name": "สมชาย ใจดี",
+        "line_id": "somchai.j"
+      }
+    }
+  }
+]
+```
+
+`post.owner.line_id` มีเฉพาะใบสมัครที่ `accepted`; pending/rejected ไม่มี key นี้
+
+### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+
 ## Error formats และ status codes
 
 | Status | ใช้เมื่อ |
@@ -465,4 +577,4 @@ response เป็น post object รูปแบบเดียวกับข�
 - `enableStrictParsing` เปิดอยู่ จึงไม่มี bare controller path (`/auth/login`, `/skill/index` ฯลฯ) อีกต่อไป ทุก path ที่ไม่ตรงกับ contract ตอบ `404` ทั้งหมด; การเรียก path `/api/*` ที่มีอยู่ด้วย method ผิดก็ได้ `404` เพราะ rule ผูก method ไว้
 - `web/index.php` เปิด `YII_DEBUG` เป็น `true` ใน development จึงอาจเห็น field `previous` เพิ่มใน error object โดยเฉพาะ `404`; field ที่ควรพึ่งพาคือ `name`, `message`, `code`, `status`
 - ไม่มี CORS header เพราะ development ใช้ Vite proxy; production ต้องตั้ง Nginx แยก `/` และ `/api/*` ซึ่งอยู่นอกรอบปัจจุบัน
-- ยังไม่มี endpoint สำหรับ `/api/me`, logout หรือ profile
+- ยังไม่มี endpoint สำหรับ logout, profile แยกจาก `/api/me`, pagination หรือ rate limit
