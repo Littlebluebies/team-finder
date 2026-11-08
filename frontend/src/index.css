@@ -1,0 +1,81 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #17221b;
+  background: #f3f6ef;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input, select { font: inherit; }
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 40px 18px;
+  background: radial-gradient(circle at top right, #dcebd2, transparent 45%), #f3f6ef;
+}
+
+.card {
+  width: min(100%, 620px);
+  padding: clamp(24px, 5vw, 44px);
+  border: 1px solid #d8e0d3;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 18px 55px rgba(33, 58, 39, 0.09);
+}
+
+.home-card { text-align: center; }
+.eyebrow { margin: 0 0 10px; color: #39724b; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.16em; }
+h1 { margin: 0 0 10px; font-size: clamp(1.8rem, 5vw, 2.5rem); line-height: 1.15; }
+p { line-height: 1.65; }
+form { display: grid; gap: 17px; margin-top: 26px; }
+.field { display: grid; gap: 7px; font-weight: 650; }
+
+input, select {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid #6f8069;
+  border-radius: 10px;
+  background: #fff;
+  color: #17221b;
+}
+
+input:focus, select:focus, button:focus-visible, a:focus-visible {
+  outline: 3px solid #3f6b4c;
+  outline-offset: 2px;
+}
+
+.button {
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: #285e3b;
+  color: #fff;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.button:hover { background: #1e4b2f; }
+.button:disabled { cursor: wait; opacity: 0.65; }
+.button.secondary { margin-top: 14px; background: #e3eee0; color: #1e4b2f; }
+.alert { margin-top: 18px; padding: 12px 14px; border-radius: 10px; background: #fff0ed; color: #8e2f21; }
+.field-error { color: #a02c20; font-weight: 500; }
+.privacy-note { margin: -4px 0 0; color: #526457; font-size: 0.88rem; }
+.skills-fieldset { margin: 0; padding: 16px; border: 1px solid #d8e0d3; border-radius: 12px; }
+.skills-fieldset legend { padding: 0 6px; font-weight: 750; }
+.skill-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.skill-option { display: flex; align-items: center; gap: 9px; font-weight: 500; }
+.skill-option input { width: 18px; min-height: 18px; margin: 0; }
+.auth-link { margin: 22px 0 0; text-align: center; }
+.auth-link a { color: #285e3b; font-weight: 750; }
+
+@media (max-width: 520px) {
+  .shell { padding: 16px 12px; align-items: start; }
+  .card { border-radius: 16px; }
+  .skill-grid { grid-template-columns: 1fr; }
+}
