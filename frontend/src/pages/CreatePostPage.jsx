@@ -69,8 +69,7 @@ export default function CreatePostPage() {
 
   return (
     <main className="shell page-shell">
-      <section className="card">
-        <p className="eyebrow">TEAM FINDER</p>
+      <section className="card form-card">
         <h1>สร้างโพสต์หาทีม</h1>
         <p>บอกให้เพื่อน ๆ รู้ว่าคุณกำลังหาสมาชิกทีมสำหรับโปรเจกต์อะไร</p>
         {message && <div className="alert" role="alert">{message}</div>}

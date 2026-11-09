@@ -39,7 +39,9 @@ export default function LoginPage({ onAuth }) {
   return (
     <main className="shell">
       <section className="card auth-card">
-        <p className="eyebrow">TEAM FINDER</p>
+        <div className="doc-chrome">
+          <span className="doc-mark">TEAM FINDER</span>
+        </div>
         <h1>เข้าสู่ระบบ</h1>
         <p>กลับไปหาทีมที่ใช่สำหรับโปรเจกต์ของคุณ</p>
         {message && <div className="alert" role="alert">{message}</div>}

@@ -18,10 +18,7 @@ export default function MyPostsPage() {
   return (
     <main className="shell page-shell">
       <div className="page-head">
-        <div>
-          <p className="eyebrow">TEAM FINDER</p>
-          <h1>โพสต์ของฉัน</h1>
-        </div>
+        <h1>โพสต์ของฉัน</h1>
         <Link className="button" to="/posts/new">สร้างโพสต์หาทีม</Link>
       </div>
       {message && <div className="alert" role="alert">{message}</div>}
@@ -36,7 +33,7 @@ export default function MyPostsPage() {
               <Link className="card post-card" to={`/posts/${post.id}`}>
                 <div className="post-meta">
                   <span className={`badge badge-${post.category}`}>{categoryLabel(post.category)}</span>
-                  <span className="badge">{post.status === 'open' ? 'เปิดรับ' : 'ปิดรับ'}</span>
+                  <span className={`badge badge-${post.status}`}>{post.status === 'open' ? 'เปิดรับ' : 'ปิดรับ'}</span>
                   {post.pending_count > 0 && <span className="badge badge-pending">รอตอบ {post.pending_count}</span>}
                 </div>
                 <h2>{post.title}</h2>

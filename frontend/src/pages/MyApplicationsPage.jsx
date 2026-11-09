@@ -23,10 +23,7 @@ export default function MyApplicationsPage() {
   return (
     <main className="shell page-shell">
       <div className="page-head">
-        <div>
-          <p className="eyebrow">TEAM FINDER</p>
-          <h1>ใบสมัครของฉัน</h1>
-        </div>
+        <h1>ใบสมัครของฉัน</h1>
       </div>
       {message && <div className="alert" role="alert">{message}</div>}
       {applications === null && !message && <p>กำลังโหลดใบสมัคร…</p>}
@@ -38,8 +35,8 @@ export default function MyApplicationsPage() {
           {applications.map((application) => (
             <li key={application.id} className="card">
               <div className="post-meta">
-                <span className="badge">{STATUS_LABELS[application.status]}</span>
-                <span className="badge">{application.post.status === 'open' ? 'เปิดรับ' : 'ปิดรับ'}</span>
+                <span className={`badge badge-${application.status}`}>{STATUS_LABELS[application.status]}</span>
+                <span className={`badge badge-${application.post.status}`}>{application.post.status === 'open' ? 'เปิดรับ' : 'ปิดรับ'}</span>
               </div>
               <h2><Link to={`/posts/${application.post.id}`}>{application.post.title}</Link></h2>
               <p className="post-info">เจ้าของโพสต์: {application.post.owner.display_name}</p>

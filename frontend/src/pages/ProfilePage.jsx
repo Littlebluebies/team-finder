@@ -91,8 +91,7 @@ export default function ProfilePage() {
 
   return (
     <main className="shell page-shell">
-      <section className="card">
-        <p className="eyebrow">TEAM FINDER</p>
+      <section className="card form-card">
         <h1>โปรไฟล์ของฉัน</h1>
         <p className="post-info">อีเมล: {email}</p>
         {message && <div className="alert" role="alert">{message}</div>}
@@ -147,9 +146,11 @@ export default function ProfilePage() {
             </div>
             {fieldErrors.skill_ids && <small className="field-error" role="alert">{fieldErrors.skill_ids}</small>}
           </fieldset>
-          <button className="button" type="submit" disabled={submitting}>
-            {submitting ? 'กำลังบันทึก…' : 'บันทึกโปรไฟล์'}
-          </button>
+          <div className="form-actions">
+            <button className="button" type="submit" disabled={submitting}>
+              {submitting ? 'กำลังบันทึก…' : 'บันทึกโปรไฟล์'}
+            </button>
+          </div>
         </form>
       </section>
     </main>

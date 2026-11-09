@@ -76,7 +76,9 @@ export default function RegisterPage({ onAuth }) {
   return (
     <main className="shell">
       <section className="card auth-card">
-        <p className="eyebrow">TEAM FINDER</p>
+        <div className="doc-chrome">
+          <span className="doc-mark">TEAM FINDER</span>
+        </div>
         <h1>สมัครสมาชิก</h1>
         <p>สร้างบัญชีเพื่อเริ่มหาทีมและสมาชิกร่วมโปรเจกต์</p>
         {message && <div className="alert" role="alert">{message}</div>}

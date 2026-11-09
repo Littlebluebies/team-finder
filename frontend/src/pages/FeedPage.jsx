@@ -12,12 +12,15 @@ export default function FeedPage() {
   const [filters, setFilters] = useState(emptyFilters)
   const [query, setQuery] = useState(emptyFilters)
   const [message, setMessage] = useState('')
+  const [skillError, setSkillError] = useState('')
 
   useEffect(() => {
     let active = true
     getSkills()
       .then((items) => { if (active) setSkills(items) })
-      .catch(() => {})
+      .catch(() => {
+        if (active) setSkillError('โหลดรายการทักษะไม่สำเร็จ กรองด้วยทักษะไม่ได้ กรุณารีเฟรชหน้า')
+      })
     return () => { active = false }
   }, [])
 
@@ -46,17 +49,14 @@ export default function FeedPage() {
   return (
     <main className="shell page-shell">
       <div className="page-head">
-        <div>
-          <p className="eyebrow">TEAM FINDER</p>
-          <h1>กระดานหาทีม</h1>
-        </div>
+        <h1>กระดานหาทีม</h1>
         <Link className="button" to="/posts/new">สร้างโพสต์หาทีม</Link>
       </div>
 
       <form className="filter-bar" onSubmit={submit}>
         <label className="field">
           <span>ทักษะ</span>
-          <select name="skill" value={filters.skill} onChange={update}>
+          <select name="skill" value={filters.skill} onChange={update} disabled={Boolean(skillError)}>
             <option value="">ทั้งหมด</option>
             {skills.map((skill) => <option key={skill.id} value={skill.id}>{skill.name}</option>)}
           </select>
@@ -79,6 +79,7 @@ export default function FeedPage() {
       </form>
 
       {message && <div className="alert" role="alert">{message}</div>}
+      {skillError && <div className="alert" role="alert">{skillError}</div>}
       {posts === null && !message && <p>กำลังโหลดโพสต์…</p>}
       {posts !== null && posts.length === 0 && (
         <section className="card">
@@ -93,12 +94,14 @@ export default function FeedPage() {
               <Link className="card post-card" to={`/posts/${post.id}`}>
                 <div className="post-meta">
                   <span className={`badge badge-${post.category}`}>{categoryLabel(post.category)}</span>
-                  <span className="badge">{post.status === 'open' ? 'เปิดรับ' : 'ปิดรับ'}</span>
+                  <span className={`badge badge-${post.status}`}>{post.status === 'open' ? 'เปิดรับ' : 'ปิดรับ'}</span>
                 </div>
                 <h2>{post.title}</h2>
                 <p className="post-desc">{post.description}</p>
                 <p className="post-info">
-                  รับแล้ว {post.accepted_count}/{post.slots} คน · ปิดรับ {post.deadline} · โพสต์โดย {post.owner.display_name}
+                  <span>รับแล้ว {post.accepted_count}/{post.slots} คน</span>
+                  <span>ปิดรับ {post.deadline}</span>
+                  <span>โพสต์โดย {post.owner.display_name}</span>
                 </p>
                 <ul className="skill-chips">
                   {post.skills.map((skill) => <li key={skill.id}>{skill.name}</li>)}

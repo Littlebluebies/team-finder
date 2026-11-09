@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-08T23:55:00+07:00",
+  "title": "Design System: Team Finder",
+  "extensions": {
+    "colorMeta": {
+      "highlighter-lime": {
+        "role": "primary",
+        "displayName": "Highlighter Lime",
+        "canonical": "#d8f24a",
+        "tonalRamp": ["#2b3306", "#47540a", "#637611", "#829c19", "#a3c225", "#bede36", "#d8f24a", "#eefa9f"]
+      },
+      "lime-wash": {
+        "role": "primary",
+        "displayName": "Lime Wash",
+        "canonical": "#f4f9d6",
+        "tonalRamp": ["#3b3f1c", "#5a6029", "#787f38", "#979f49", "#b6bf5d", "#d5dd75", "#eef3a4", "#f9fbdc"]
+      },
+      "paper-white": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#1a1a18", "#3f403c", "#63645e", "#878981", "#acaea5", "#d1d2c9", "#ecece6", "#ffffff"]
+      },
+      "chip-paper": {
+        "role": "neutral",
+        "displayName": "Chip Paper",
+        "canonical": "#fbfbf7",
+        "tonalRamp": ["#1b1b18", "#41413c", "#66665f", "#8b8b83", "#b0b0a8", "#d4d4cc", "#eeeeea", "#fbfbf7"]
+      },
+      "desk-grey": {
+        "role": "neutral",
+        "displayName": "Desk Grey",
+        "canonical": "#f7f7f3",
+        "tonalRamp": ["#1a1a17", "#3f3f3a", "#63645d", "#87887f", "#acada4", "#d0d1c8", "#eaeae4", "#f7f7f3"]
+      },
+      "wash": {
+        "role": "neutral",
+        "displayName": "Wash",
+        "canonical": "#f2f3ea",
+        "tonalRamp": ["#191a15", "#3e3f36", "#62645a", "#86887d", "#aaaca2", "#cecfc6", "#e8e9e2", "#f2f3ea"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#16170f",
+        "tonalRamp": ["#080903", "#16170f", "#23251a", "#34372a", "#4b4e43", "#6f7266", "#a9ac9f", "#e3e4db"]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "#4b4e43",
+        "tonalRamp": ["#101108", "#1e2016", "#2d3022", "#3f4234", "#4b4e43", "#767a6c", "#adb0a3", "#e6e7de"]
+      },
+      "graphite": {
+        "role": "neutral",
+        "displayName": "Graphite",
+        "canonical": "#6f7266",
+        "tonalRamp": ["#1c1d18", "#2b2c26", "#3b3d35", "#4e5047", "#6f7266", "#95988c", "#bfc1b7", "#e9eae3"]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#e3e4db",
+        "tonalRamp": ["#232419", "#3c3e32", "#56594b", "#727567", "#8f9285", "#adb0a4", "#cdcfc5", "#e3e4db"]
+      },
+      "hairline-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Strong",
+        "canonical": "#c6c8bb",
+        "tonalRamp": ["#1e1f16", "#35372b", "#4c4f41", "#65685a", "#7f8273", "#9b9e8f", "#b3b6a8", "#c6c8bb"]
+      },
+      "rust": {
+        "role": "tertiary",
+        "displayName": "Rust",
+        "canonical": "#a3341f",
+        "tonalRamp": ["#2a0a05", "#451209", "#5f1c10", "#7d2718", "#a3341f", "#c4563e", "#dd8b76", "#f6ded7"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "หัวเรื่องของแต่ละหน้า หนึ่งถึงสองบรรทัด" },
+      "headline": { "displayName": "Headline", "purpose": "หัวข้อย่อยในเอกสารและหัวข้อ empty state" },
+      "title": { "displayName": "Title", "purpose": "ชื่อโพสต์ในสารบัญ" },
+      "body": { "displayName": "Body", "purpose": "คำอธิบายโพสต์ ข้อความใบสมัคร และเนื้อหาเอกสาร" },
+      "label": { "displayName": "Label", "purpose": "ชื่อฟิลด์ legend wordmark และป้ายสถานะ" },
+      "meta": { "displayName": "Meta", "purpose": "ตัวเลข วันที่ ลำดับ และชื่อเจ้าของ" }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "doc-in",
+        "value": "320ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "อนิเมชันเดียวของระบบ: เอกสารเลื่อนขึ้น 8px พร้อมจางเข้าเมื่อเปิดหน้า"
+      },
+      {
+        "name": "step-state",
+        "value": "90ms steps(2, end)",
+        "purpose": "การเปลี่ยนสีของปุ่ม ลิงก์ nav และแถว ให้เป็นขั้นบันไดแบบดิจิทัล ไม่เนียน"
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "560px" },
+      { "name": "md", "value": "820px" },
+      { "name": "lg", "value": "860px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "ปุ่มกระทำหลักของเอกสาร เช่น สร้างโพสต์ สมัคร และเข้าสู่ระบบ",
+      "html": "<button class=\"ds-btn-primary\">สร้างโพสต์หาทีม</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1px solid #16170f; border-radius: 2px; background: #16170f; color: #ffffff; font-family: Anuphan, system-ui, sans-serif; font-size: 13px; font-weight: 600; line-height: 1; cursor: pointer; transition: background-color 90ms steps(2, end), color 90ms steps(2, end); } .ds-btn-primary:hover { background: #d8f24a; color: #16170f; } .ds-btn-primary:focus-visible { outline: 2px solid #16170f; outline-offset: 2px; } .ds-btn-primary:disabled { opacity: 0.45; cursor: wait; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "ปุ่มรอง เช่น ล้างตัวกรอง กลับกระดาน และยกเลิก",
+      "html": "<button class=\"ds-btn-secondary\">ล้าง</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 16px; border: 1px solid #c6c8bb; border-radius: 2px; background: transparent; color: #16170f; font-family: Anuphan, system-ui, sans-serif; font-size: 13px; font-weight: 600; line-height: 1; cursor: pointer; transition: background-color 90ms steps(2, end), border-color 90ms steps(2, end); } .ds-btn-secondary:hover { background: #f2f3ea; border-color: #16170f; } .ds-btn-secondary:focus-visible { outline: 2px solid #16170f; outline-offset: 2px; }"
+    },
+    {
+      "name": "Underline Input",
+      "kind": "input",
+      "refersTo": "input-underline",
+      "description": "ช่องกรอกบรรทัดเดียวที่อ่านเป็นเส้นเขียนในเอกสาร ไม่ใช่กล่อง",
+      "html": "<label class=\"ds-field\"><span>ชื่อที่แสดง</span><input class=\"ds-input\" type=\"text\" placeholder=\"เช่น มายด์\" /></label>",
+      "css": ".ds-field { display: grid; gap: 6px; font-family: Anuphan, system-ui, sans-serif; } .ds-field span { color: #6f7266; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; } .ds-input { width: 100%; min-height: 38px; padding: 8px 0; border: 0; border-bottom: 1px solid #c6c8bb; border-radius: 0; background: transparent; color: #16170f; font-family: Anuphan, system-ui, sans-serif; font-size: 15px; } .ds-input:hover { border-bottom-color: #6f7266; } .ds-input:focus { outline: 2px solid #16170f; outline-offset: 2px; border-bottom-color: #16170f; } .ds-input::placeholder { color: #6f7266; }"
+    },
+    {
+      "name": "Skill Chip",
+      "kind": "chip",
+      "refersTo": "skill-chip",
+      "description": "ป้ายทักษะแบบอ่านอย่างเดียว ใช้ในแถวโพสต์และหน้ารายละเอียด",
+      "html": "<ul class=\"ds-chips\"><li>เขียนเว็บ</li><li>UI/UX</li><li>ตัดต่อ</li></ul>",
+      "css": ".ds-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; } .ds-chips li { padding: 3px 7px; border: 1px solid #e3e4db; border-radius: 2px; background: #fbfbf7; color: #4b4e43; font-family: Anuphan, system-ui, sans-serif; font-size: 12px; line-height: 1.2; }"
+    },
+    {
+      "name": "Post Row",
+      "kind": "card",
+      "refersTo": "post-row",
+      "description": "แถวสารบัญของกระดาน: เลขลำดับ mono, ป้ายสถานะ, ชื่อโพสต์, คำอธิบาย, metadata และ chip",
+      "html": "<a class=\"ds-post-row\" href=\"#\"><span class=\"ds-post-num\">01</span><div class=\"ds-post-body\"><div class=\"ds-post-meta\"><span class=\"ds-badge ds-badge-open\">เปิดรับ</span></div><h2>หาคนทำ UI/UX สำหรับโปรเจกต์รายวิชา</h2><p>ทีม 3 คนต้องการนักออกแบบเพิ่ม ทำงานสัปดาห์ละ 2 ครั้ง</p><p class=\"ds-post-info\">รับแล้ว 1/3 คน · ปิดรับ 2026-11-20 · โพสต์โดย มายด์</p></div></a>",
+      "css": ".ds-post-row { position: relative; display: block; padding: 22px 12px 22px 46px; border-bottom: 1px solid #e3e4db; color: #16170f; font-family: Anuphan, system-ui, sans-serif; text-decoration: none; transition: background-color 90ms steps(2, end); } .ds-post-row:hover { background: #f2f3ea; } .ds-post-num { position: absolute; left: 0; top: 24px; color: #6f7266; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.04em; } .ds-post-row h2 { margin: 6px 0 8px; font-size: 21px; font-weight: 600; line-height: 1.3; letter-spacing: -0.02em; } .ds-post-row:hover h2 { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; } .ds-post-row p { margin: 0 0 10px; color: #4b4e43; font-size: 14px; line-height: 1.65; } .ds-post-row .ds-post-info { color: #6f7266; font-size: 11px; letter-spacing: 0.01em; } .ds-badge { display: inline-flex; align-items: center; gap: 6px; color: #4b4e43; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; line-height: 1; text-transform: uppercase; } .ds-badge::before { content: ''; width: 6px; height: 6px; background: #d8f24a; border: 1px solid #16170f; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "skill-chip",
+      "description": "สถานะแสดงด้วยสี่เหลี่ยมจัตุรัส 6px และข้อความ mono ตัวเล็ก",
+      "html": "<div class=\"ds-status-set\"><span class=\"ds-status ds-status-open\">เปิดรับ</span><span class=\"ds-status ds-status-closed\">ปิดรับ</span><span class=\"ds-status ds-status-accepted\">ตอบรับแล้ว</span><span class=\"ds-status ds-status-rejected\">ปฏิเสธ</span></div>",
+      "css": ".ds-status-set { display: flex; flex-wrap: wrap; gap: 14px; } .ds-status { display: inline-flex; align-items: center; gap: 6px; color: #4b4e43; font-family: Anuphan, system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; line-height: 1; text-transform: uppercase; } .ds-status::before { content: ''; width: 6px; height: 6px; background: #c6c8bb; } .ds-status-open::before { background: #d8f24a; border: 1px solid #16170f; } .ds-status-closed::before { background: transparent; border: 1px solid #c6c8bb; } .ds-status-accepted::before { background: #16170f; } .ds-status-rejected::before { background: transparent; border: 1px solid #c6c8bb; }"
+    },
+    {
+      "name": "Owner Rail",
+      "kind": "custom",
+      "refersTo": "post-row",
+      "description": "คอลัมน์ comment 300px ของหน้ารายละเอียด: เส้น hairline ซ้าย รายการใบสมัครพร้อม marker และปุ่มตอบรับ",
+      "html": "<aside class=\"ds-rail\"><h2>ผู้สมัคร (2)</h2><ul><li><span class=\"ds-rail-mark\"></span><div><strong>มิ้นท์</strong><p class=\"ds-rail-meta\">เขียนเว็บ · UI/UX</p><p class=\"ds-rail-msg\">อยากร่วมทีมค่ะ มีผลงานเว็บ 2 ชิ้น</p><div class=\"ds-rail-actions\"><button class=\"ds-rail-btn\">ตอบรับ</button><button class=\"ds-rail-btn ds-rail-btn-quiet\">ปฏิเสธ</button></div></div></li></ul></aside>",
+      "css": ".ds-rail { width: 300px; padding-left: 24px; border-left: 1px solid #e3e4db; font-family: Anuphan, system-ui, sans-serif; } .ds-rail h2 { margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #e3e4db; font-size: 14px; font-weight: 600; } .ds-rail ul { margin: 0; padding: 0; list-style: none; } .ds-rail li { position: relative; padding: 16px 0 16px 30px; border-bottom: 1px solid #e3e4db; } .ds-rail-mark { position: absolute; left: 0; top: 20px; width: 16px; height: 16px; border: 1px solid #16170f; background: #d8f24a; } .ds-rail strong { display: block; font-size: 14px; } .ds-rail p { margin: 4px 0; font-size: 12px; line-height: 1.6; } .ds-rail-meta { color: #6f7266; } .ds-rail-msg { color: #4b4e43; font-size: 13px; } .ds-rail-actions { display: flex; gap: 8px; margin-top: 10px; } .ds-rail-btn { min-height: 30px; padding: 0 10px; border: 1px solid #16170f; border-radius: 2px; background: #16170f; color: #fff; font: 600 12px/1 Anuphan, system-ui, sans-serif; cursor: pointer; } .ds-rail-btn:hover { background: #d8f24a; color: #16170f; } .ds-rail-btn-quiet { background: transparent; color: #16170f; border-color: #c6c8bb; } .ds-rail-btn-quiet:hover { background: #f2f3ea; border-color: #16170f; }"
+    },
+    {
+      "name": "Topbar Navigation",
+      "kind": "nav",
+      "refersTo": "button-secondary",
+      "description": "แถบเอกสารสูง 56px: wordmark สี่เหลี่ยม lime, nav ข้อความ และปุ่มออกจากระบบ",
+      "html": "<header class=\"ds-topbar\"><a class=\"ds-brand\" href=\"#\">TEAM FINDER</a><nav><a href=\"#\">กระดาน</a><a href=\"#\">โพสต์ของฉัน</a><a href=\"#\">ใบสมัครของฉัน</a><a href=\"#\">โปรไฟล์</a></nav><button class=\"ds-logout\">ออกจากระบบ</button></header>",
+      "css": ".ds-topbar { display: flex; align-items: center; gap: 28px; height: 56px; padding: 0 40px; border-bottom: 1px solid #e3e4db; background: #ffffff; font-family: Anuphan, system-ui, sans-serif; } .ds-brand { display: inline-flex; align-items: center; gap: 9px; color: #16170f; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-decoration: none; } .ds-brand::before { content: ''; width: 9px; height: 9px; background: #d8f24a; border: 1px solid #16170f; } .ds-topbar nav { display: flex; align-items: center; gap: 2px; } .ds-topbar nav a { padding: 6px 10px; border-radius: 2px; color: #4b4e43; font-size: 13px; font-weight: 500; text-decoration: none; } .ds-topbar nav a:hover { background: #f2f3ea; color: #16170f; } .ds-logout { margin-left: auto; min-height: 30px; padding: 0 10px; border: 1px solid #c6c8bb; border-radius: 2px; background: transparent; color: #16170f; font: 600 12px/1 Anuphan, system-ui, sans-serif; cursor: pointer; } .ds-logout:hover { background: #f2f3ea; border-color: #16170f; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "หน้ากระดาษที่แก้ร่วมกัน (The Shared Page)",
+    "overview": "Team Finder ไม่ได้อ่านเป็นเว็บหาทีมทั่วไปที่เต็มไปด้วยการ์ดลอยและเงานุ่ม แต่เป็นเอกสารแผ่นเดียวที่คนหลายคนเข้ามาเขียนร่วมกัน: กระดานคือสารบัญของโพสต์ หน้ารายละเอียดคือหน้าของเอกสาร และใบสมัครคือ comment ที่รอถูกตอบรับในคอลัมน์ขวา ภาษาภาพทั้งหมดจึงมาจากเครื่องมือทำงานจริง — กระดาษ หมึก เส้นบรรทัด ปากกาไฮไลต์ และตัวเลขกำกับในสารบัญ\n\nความเรียบน้อยที่สุดไม่ได้หมายถึงความจืด: ตัวอักษรไทยขนาดใหญ่ น้ำหนัก 600 และช่องว่างที่ใจกว้างทำหน้าที่เป็นลำดับชั้นแทนสีและเงา มีสีเน้นเพียงสีเดียวคือไฮไลต์ lime ที่ทำตัวเหมือนปากกาเน้นข้อความ ใช้เมื่อข้อมูลนั้นกำลังถูกยืนยัน ไม่ใช่เพื่อตกแต่ง\n\nทุกหน้าอยู่ในโหมด Operate — ผู้ใช้ต้องสแกน หา สมัคร และติดตามสถานะได้เร็ว ภาษาเอกสารจึงต้องไม่ขัดขวางงาน: เส้น hairline แยกทุกส่วน ป้ายสถานะเป็นสี่เหลี่ยมเล็ก ๆ 6px และ metadata ทั้งหมดเป็น mono เพื่อแยกข้อมูลออกจากข้อความ",
+    "keyCharacteristics": [
+      "กระดาษขาวบนโต๊ะสีอุ่น ไม่มีการ์ดและไม่มีเงา",
+      "ไฮไลต์ lime เดียว ทำหน้าที่เป็นปากกาเน้น ไม่ใช่พื้นหลังใหญ่",
+      "Anuphan ไทยตัวใหญ่คม ประกบ mono บาง ๆ สำหรับ metadata",
+      "เส้น hairline 1px และเลขกำกับ 01/02/03 แทนขอบเขตการ์ด",
+      "มุม 2px เท่านั้น ไม่มี pill ไม่มีวงกลม"
+    ],
+    "rules": [
+      { "name": "The One Highlighter Rule", "body": "สี lime ปรากฏได้ไม่เกินหนึ่งจุดต่อหนึ่งหน้าจอ และต้องหมายถึงสิ่งนี้กำลังถูกยืนยัน เท่านั้น", "section": "colors" },
+      { "name": "The Paper First Rule", "body": "พื้นหลังของเนื้อหาคือขาวเสมอ สีอุ่นสงวนไว้ให้โต๊ะรอบเอกสาร ห้ามกลับด้าน", "section": "colors" },
+      { "name": "The Two-Voice Rule", "body": "มีสองเสียงเท่านั้น: Anuphan พูด และ mono กำกับ ห้ามใช้ mono เป็นประโยคยาว และห้ามใช้ Anuphan กับ metadata ตัวเลข", "section": "typography" },
+      { "name": "The No-Kicker Rule", "body": "หัวข้อไม่ต้องมีป้ายเล็ก ๆ เหนือมัน ชื่อหน้าและเส้น hairline ทำหน้าที่นั้นอยู่แล้ว", "section": "typography" },
+      { "name": "The Flat Page Rule", "body": "ถ้าต้องเพิ่มเงาเพื่อให้อ่านออก แปลว่าลำดับชั้นยังผิด ให้แก้ด้วยขนาดตัวอักษร น้ำหนัก หรือเส้น ก่อนเสมอ", "section": "elevation" },
+      { "name": "The Square Marker Rule", "body": "สถานะทุกชนิดแสดงด้วยสี่เหลี่ยมจัตุรัส ไม่ใช่จุดกลม สีของสี่เหลี่ยมคือความหมาย", "section": "elevation" }
+    ],
+    "dos": [
+      "Do ใช้ #ffffff เป็นพื้นเอกสารและ #f7f7f3 เป็นพื้นโต๊ะเท่านั้น",
+      "Do แยกทุกส่วนด้วยเส้น 1px #e3e4db ก่อนคิดจะเพิ่มระยะห่างหรือเงา",
+      "Do ใช้ lime #d8f24a เป็นปากกาเน้น: จุดสถานะ, selection, ไฮไลต์ LINE, hover ของปุ่มหลัก",
+      "Do ตั้งชื่อหน้าเป็น Display 600 ขนาด clamp 30–46px และปล่อยให้ขึ้นสองบรรทัดได้",
+      "Do ใส่ metadata ทุกตัวเป็น mono 11px tabular-nums",
+      "Do คงมุม 2px และสี่เหลี่ยมจัตุรัสเป็นภาษารูปทรงเดียวของระบบ",
+      "Do ให้คอลัมน์ owner rail ตรึงที่ top 88px บนจอ ≥820px"
+    ],
+    "donts": [
+      "Don't ใส่ box-shadow หรือ gradient ใด ๆ ทั้งสิ้น",
+      "Don't ใช้ lime เป็นพื้นหลังขนาดใหญ่ หรือเป็นสีตัวอักษรบนกระดาษขาว",
+      "Don't สร้างการ์ดลอย มีเงา หรือแยกโพสต์ด้วยระยะห่างระหว่างการ์ด",
+      "Don't ใส่ eyebrow/kicker เหนือหัวข้อ",
+      "Don't ใช้ pill, วงกลม, avatar กลม หรือมุมโค้งเกิน 2px",
+      "Don't ใช้ mono เป็นประโยค หรือใช้ Anuphan กับตัวเลข metadata",
+      "Don't เพิ่มสีใหม่เพื่อแสดงสถานะ",
+      "Don't เปลี่ยนข้อความไทยหรือพฤติกรรมเดิมของแอประหว่างงานภาพ"
+    ]
+  }
+}
