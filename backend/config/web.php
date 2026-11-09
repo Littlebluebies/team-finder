@@ -1,5 +1,16 @@
 <?php
 
+$notifications = require __DIR__ . '/notifications.php';
+
+$mailer = [
+    'class' => yii\symfonymailer\Mailer::class,
+    'viewPath' => '@app/views/mail',
+    'useFileTransport' => false,
+];
+if ($notifications['mail']['dsn'] !== '') {
+    $mailer['transport'] = ['dsn' => $notifications['mail']['dsn']];
+}
+
 return [
     'id' => 'team-finder-api',
     'basePath' => dirname(__DIR__),
@@ -20,6 +31,7 @@ return [
             'loginUrl' => null,
         ],
         'db' => require __DIR__ . '/db.php',
+        'mailer' => $mailer,
         'urlManager' => [
             'enablePrettyUrl' => true,
             'enableStrictParsing' => true,
@@ -49,5 +61,8 @@ return [
                 ],
             ],
         ],
+    ],
+    'params' => [
+        'notifications' => $notifications,
     ],
 ];
