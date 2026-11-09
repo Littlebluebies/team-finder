@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { fetchMe, updateMe } from '../api/me'
 import { getSkills } from '../api/skills'
 import { ApiError, getFieldErrors } from '../api/client'
+import { getLineAuthorizeUrl, unlinkLine } from '../api/notifications'
 
 const initialForm = {
   display_name: '', faculty: '', major: '', year: '1', line_id: '', bio: '',
@@ -17,6 +18,10 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [lineLinked, setLineLinked] = useState(false)
+  const [lineLinkedAt, setLineLinkedAt] = useState('')
+  const [lineBusy, setLineBusy] = useState(false)
+  const [lineMessage, setLineMessage] = useState('')
 
   useEffect(() => {
     let active = true
@@ -33,6 +38,8 @@ export default function ProfilePage() {
           bio: profile.bio || '',
         })
         setSelectedSkills(profile.skills.map((skill) => skill.id))
+        setLineLinked(Boolean(profile.line_linked))
+        setLineLinkedAt(profile.line_linked_at || '')
         setSkills(skillItems)
       })
       .catch(() => { if (active) setMessage('โหลดโปรไฟล์ไม่สำเร็จ กรุณารีเฟรชหน้า') })
@@ -82,6 +89,33 @@ export default function ProfilePage() {
       }
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function connectLine() {
+    setLineBusy(true)
+    setLineMessage('')
+    try {
+      const data = await getLineAuthorizeUrl()
+      window.location.assign(data.url)
+    } catch (error) {
+      setLineMessage(error instanceof ApiError ? error.message : 'เปิด LINE ไม่สำเร็จ')
+      setLineBusy(false)
+    }
+  }
+
+  async function disconnectLine() {
+    setLineBusy(true)
+    setLineMessage('')
+    try {
+      await unlinkLine()
+      setLineLinked(false)
+      setLineLinkedAt('')
+      setLineMessage('ยกเลิกการเชื่อมต่อ LINE แล้ว')
+    } catch (error) {
+      setLineMessage(error instanceof ApiError ? error.message : 'ยกเลิกไม่สำเร็จ')
+    } finally {
+      setLineBusy(false)
     }
   }
 
@@ -152,6 +186,27 @@ export default function ProfilePage() {
             </button>
           </div>
         </form>
+      </section>
+      <section className="card form-card notification-settings">
+        <h2>แจ้งเตือนผ่าน LINE</h2>
+        <p className="post-info">อีเมลแจ้งเตือนเปิดตลอด; LINE ต้องเชื่อมบัญชีก่อน</p>
+        {lineMessage && <div className="alert" role="alert">{lineMessage}</div>}
+        <div className="line-link-state">
+          {lineLinked ? (
+            <>
+              <p className="post-info">
+                เชื่อมต่อแล้ว{lineLinkedAt ? ` · ${lineLinkedAt}` : ''}
+              </p>
+              <button className="button secondary" type="button" onClick={disconnectLine} disabled={lineBusy}>
+                {lineBusy ? 'กำลังดำเนินการ…' : 'ยกเลิกการเชื่อมต่อ'}
+              </button>
+            </>
+          ) : (
+            <button className="button" type="button" onClick={connectLine} disabled={lineBusy}>
+              {lineBusy ? 'กำลังเปิด LINE…' : 'เชื่อมต่อ LINE'}
+            </button>
+          )}
+        </div>
       </section>
     </main>
   )
