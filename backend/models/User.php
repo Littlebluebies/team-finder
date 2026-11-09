@@ -74,6 +74,8 @@ class User extends ActiveRecord implements IdentityInterface
             'major' => $this->major,
             'year' => (int)$this->year,
             'line_id' => $this->line_id,
+            'line_linked' => $this->line_user_id !== null,
+            'line_linked_at' => $this->line_linked_at,
             'bio' => $this->bio,
             'skills' => array_map(static function ($skill) {
                 return ['id' => (int)$skill->id, 'name' => $skill->name];
