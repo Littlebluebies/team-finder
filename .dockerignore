@@ -1,0 +1,10 @@
+.git
+.superpowers
+.impeccable
+backend/runtime
+backend/vendor
+backend/config/db-local.php
+backend/config/notifications-local.php
+frontend/node_modules
+frontend/dist
+*.log
