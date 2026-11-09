@@ -132,3 +132,30 @@ npm run build
 - [`docs/api.md`](docs/api.md) — source of truth ของ request/response/error ทั้ง 14 endpoint
 - [`docs/deploy.md`](docs/deploy.md) — ขั้นตอน deploy production พร้อม Nginx/PHP-FPM/HTTPS
 - [`docs/handoff.md`](docs/handoff.md) — สิ่งที่ implement แล้ว, ผลตรวจจริง, ข้อจำกัด, งานถัดไป
+
+## Notifications (email + LINE)
+
+คัดลอก `backend/config/notifications-local.example.php` เป็น
+`backend/config/notifications-local.php` แล้วใส่ค่าจริง ไฟล์นี้ถูก gitignore
+
+- `mail.dsn`: SMTP DSN เช่น `smtp://user:pass@smtp.example.com:587`
+- `line.channel_id` / `line.channel_secret`: จาก LINE Login channel
+- `line.access_token`: channel access token ของ Messaging API (คนละตัวกับ channel secret)
+- `line.redirect_uri`: ต้องตรงกับที่ลงทะเบียนใน LINE Developers Console ทุกตัวอักษร
+- `dry_run`: `true` = ไม่ยิงเน็ต (ใช้ใน dev/test), `false` = ส่งจริง
+
+เมื่อยังไม่มี credential ให้คง `dry_run => true` ระบบยังสร้าง in-app notification ได้ปกติ
+
+Retry ของที่ส่งไม่สำเร็จ:
+
+```powershell
+cd backend
+php yii notification/retry --limit=100
+```
+
+ทดสอบ flow (ต้องเปิด backend และตั้ง `dry_run => true`):
+
+```powershell
+cd backend
+php tests/notification_smoke.php
+```

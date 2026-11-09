@@ -9,6 +9,9 @@ import PostDetailPage from './pages/PostDetailPage'
 import ProfilePage from './pages/ProfilePage'
 import MyPostsPage from './pages/MyPostsPage'
 import MyApplicationsPage from './pages/MyApplicationsPage'
+import NotificationBadge from './components/NotificationBadge'
+import NotificationsPage from './pages/NotificationsPage'
+import LineCallbackPage from './pages/LineCallbackPage'
 
 export default function App() {
   const [token, setToken] = useState(getToken)
@@ -35,6 +38,7 @@ export default function App() {
             <Link to="/">กระดาน</Link>
             <Link to="/me/posts">โพสต์ของฉัน</Link>
             <Link to="/me/applications">ใบสมัครของฉัน</Link>
+            <NotificationBadge />
             <Link to="/me">โปรไฟล์</Link>
           </nav>
           <div className="topbar-actions">
@@ -50,6 +54,8 @@ export default function App() {
         <Route path="/me" element={token ? <ProfilePage /> : <Navigate to="/login" replace />} />
         <Route path="/me/posts" element={token ? <MyPostsPage /> : <Navigate to="/login" replace />} />
         <Route path="/me/applications" element={token ? <MyApplicationsPage /> : <Navigate to="/login" replace />} />
+        <Route path="/me/notifications" element={token ? <NotificationsPage /> : <Navigate to="/login" replace />} />
+        <Route path="/line/callback" element={token ? <LineCallbackPage /> : <Navigate to="/login" replace />} />
         <Route path="/login" element={token ? <Navigate to="/" replace /> : <LoginPage onAuth={handleAuth} />} />
         <Route path="/register" element={token ? <Navigate to="/" replace /> : <RegisterPage onAuth={handleAuth} />} />
         <Route path="*" element={<Navigate to={token ? '/' : '/login'} replace />} />

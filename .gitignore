@@ -3,6 +3,7 @@
 !.env.example
 
 backend/config/db-local.php
+backend/config/notifications-local.php
 backend/vendor/
 backend/runtime/*
 !backend/runtime/.gitignore
@@ -15,3 +16,4 @@ frontend/dist/
 *.log
 .DS_Store
 Thumbs.db
+.superpowers/
