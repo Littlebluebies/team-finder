@@ -4,6 +4,8 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Application;
+use app\models\Notification;
+use app\services\NotificationService;
 use app\models\Post;
 use yii\filters\auth\HttpBearerAuth;
 use yii\filters\VerbFilter;
@@ -62,6 +64,7 @@ class ApplicationController extends Controller
         }
 
         $application->save(false);
+        NotificationService::dispatch($application, Notification::TYPE_RECEIVED);
         Yii::$app->response->statusCode = 201;
         return $application->toApiArray(false);
     }
@@ -128,6 +131,11 @@ class ApplicationController extends Controller
             }
             throw $exception;
         }
+
+        NotificationService::dispatch(
+            $application,
+            $status === 'accepted' ? Notification::TYPE_ACCEPTED : Notification::TYPE_REJECTED
+        );
 
         return $application->toApiArray($status === 'accepted');
     }
