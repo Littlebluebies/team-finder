@@ -24,6 +24,7 @@
 - Omit the `line_id` key for pending, rejected, or absent applications; do not substitute another user's value from cache.
 - A user's own `line_id` is allowed only in contract-defined self responses such as register/login/me.
 - Never put LINE IDs in feeds, logs, or cross-user caches.
+- Never include another user's `line_id` in notification payloads, emails, or LINE messages.
 
 ## Secrets and Authentication
 

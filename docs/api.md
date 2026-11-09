@@ -97,6 +97,8 @@ Endpoint ที่ระบุว่า "ต้อง" ล็อกอินต�
     "major": "สื่อสร้างสรรค์",
     "year": 3,
     "line_id": "somchai.j",
+    "line_linked": false,
+    "line_linked_at": null,
     "bio": null,
     "skills": [
       { "id": 1, "name": "ตัดต่อ" },
@@ -159,6 +161,8 @@ Endpoint ที่ระบุว่า "ต้อง" ล็อกอินต�
     "major": "สื่อสร้างสรรค์",
     "year": 3,
     "line_id": "somchai.j",
+    "line_linked": false,
+    "line_linked_at": null,
     "bio": null,
     "skills": [{ "id": 1, "name": "ตัดต่อ" }]
   }
@@ -440,7 +444,7 @@ response เป็น post object รูปแบบเดียวกับข�
 
 ## 11. `GET /api/me`
 
-ต้องล็อกอิน คืนข้อมูลโปรไฟล์ของผู้เรียกในรูปแบบเดียวกับ `user` ของ register/login รวม `line_id` ของตัวเองและ `skills`
+ต้องล็อกอิน คืนข้อมูลโปรไฟล์ของผู้เรียกในรูปแบบเดียวกับ `user` ของ register/login รวม `line_id` ของตัวเอง, `line_linked`, `line_linked_at` และ `skills`
 
 ### Success — `200 OK`
 
@@ -453,6 +457,8 @@ response เป็น post object รูปแบบเดียวกับข�
   "major": "สื่อสร้างสรรค์",
   "year": 3,
   "line_id": "somchai.j",
+  "line_linked": false,
+  "line_linked_at": null,
   "bio": null,
   "skills": [{ "id": 1, "name": "ตัดต่อ" }]
 }
@@ -578,3 +584,96 @@ response เป็น user object รูปแบบเดียวกับข�
 - `web/index.php` เปิด `YII_DEBUG` เป็น `true` ใน development จึงอาจเห็น field `previous` เพิ่มใน error object โดยเฉพาะ `404`; field ที่ควรพึ่งพาคือ `name`, `message`, `code`, `status`
 - ไม่มี CORS header เพราะ development ใช้ Vite proxy; production ต้องตั้ง Nginx แยก `/` และ `/api/*` ซึ่งอยู่นอกรอบปัจจุบัน
 - ยังไม่มี endpoint สำหรับ logout, profile แยกจาก `/api/me`, pagination หรือ rate limit
+
+## 15. Notifications
+
+ทุก endpoint ในส่วนนี้ต้องใช้ `Authorization: Bearer <token>`
+
+ระบบสร้าง notification ให้อัตโนมัติ 3 เหตุการณ์:
+
+| เหตุการณ์ | ผู้รับ | `type` |
+| --- | --- | --- |
+| มีผู้สมัครใหม่ | เจ้าของโพสต์ | `application_received` |
+| ใบสมัครได้รับการตอบรับ | ผู้สมัคร | `application_accepted` |
+| ใบสมัครไม่ผ่าน | ผู้สมัคร | `application_rejected` |
+
+การสร้าง notification ไม่เปลี่ยน response หรือ status code ของ endpoint เดิม แม้การส่ง email/LINE จะล้มเหลว
+
+### `GET /api/notifications`
+
+คืน 50 รายการล่าสุดของผู้ใช้ปัจจุบัน เรียงใหม่ไปเก่า:
+
+```json
+{
+  "items": [
+    {
+      "id": 12,
+      "type": "application_received",
+      "is_read": false,
+      "created_at": "2026-11-09 14:02:11",
+      "post": { "id": 22, "title": "หาคนทำคลิป" },
+      "actor": { "display_name": "สมชาย ใจดี" }
+    }
+  ],
+  "unread": 3
+}
+```
+
+- `type` เป็นหนึ่งใน `application_received`, `application_accepted`, `application_rejected`
+- `actor` คือผู้สมัครสำหรับ `application_received` และเป็นเจ้าของโพสต์สำหรับอีกสองประเภท
+- `unread` นับเฉพาะรายการที่ `read_at` เป็น `null` ของผู้ใช้ปัจจุบัน
+- response ต้องไม่มี `line_id` หรือ `line_user_id`
+
+#### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+
+### `PATCH /api/notifications`
+
+Body: `{ "ids": [1, 2] }` หรือ `{}`
+
+- ไม่ส่ง `ids` = mark read ทั้งหมดของผู้ใช้ปัจจุบัน
+- `ids` ต้องเป็น array ของ integer ที่ไม่ว่าง; id ของผู้ใช้อื่นถูก ignore
+- `ids: []` หรือชนิดข้อมูลผิดคืน 422
+
+คืน:
+
+```json
+{ "unread": 0 }
+```
+
+#### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
+- `422` — `ids` ไม่ใช่ array ของ integer ที่ไม่ว่าง
+
+### `GET /api/me/line/authorize-url`
+
+คืน URL สำหรับ redirect ผู้ใช้ไปยืนยันตัวตนกับ LINE:
+
+```json
+{ "url": "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=..." }
+```
+
+- state ถูกสร้างใหม่ทุกครั้ง, เก็บเป็น hash, มีอายุ 10 นาที และใช้ได้ครั้งเดียว
+- ถ้ายังไม่ตั้งค่า LINE Login คืน `503` พร้อม `{ "message": "LINE login is not configured." }`
+
+### `POST /api/me/line`
+
+Body: `{ "code": "...", "state": "..." }` จาก query string ที่ LINE ส่งกลับมา
+
+- `state` ผิด/หมดอายุ/ไม่ใช่ของผู้ใช้ คืน `422`
+- LINE ปฏิเสธหรือแลก token ไม่สำเร็จ คืน `502`
+- สำเร็จคืน:
+
+```json
+{ "linked": true, "linked_at": "2026-11-09 15:00:00" }
+```
+
+### `DELETE /api/me/line`
+
+ยกเลิกการเชื่อมบัญชี LINE คืน `{ "linked": false }` เสมอ (idempotent)
+
+### `line_linked` และ `line_linked_at`
+
+response ของ register/login/me มี `line_linked` (boolean) และ `line_linked_at` (string|null) เพิ่มขึ้น; ไม่มี `line_user_id` ใน response ใด ๆ
