@@ -583,7 +583,42 @@ response เป็น user object รูปแบบเดียวกับข�
 - `enableStrictParsing` เปิดอยู่ จึงไม่มี bare controller path (`/auth/login`, `/skill/index` ฯลฯ) อีกต่อไป ทุก path ที่ไม่ตรงกับ contract ตอบ `404` ทั้งหมด; การเรียก path `/api/*` ที่มีอยู่ด้วย method ผิดก็ได้ `404` เพราะ rule ผูก method ไว้
 - `web/index.php` เปิด `YII_DEBUG` เป็น `true` ใน development จึงอาจเห็น field `previous` เพิ่มใน error object โดยเฉพาะ `404`; field ที่ควรพึ่งพาคือ `name`, `message`, `code`, `status`
 - ไม่มี CORS header เพราะ development ใช้ Vite proxy; production ต้องตั้ง Nginx แยก `/` และ `/api/*` ซึ่งอยู่นอกรอบปัจจุบัน
-- ยังไม่มี endpoint สำหรับ logout, profile แยกจาก `/api/me`, pagination หรือ rate limit
+- ยังไม่มี endpoint สำหรับ profile แยกจาก `/api/me`, pagination หรือ chat
+
+## 16. Rate limit
+
+ทุก request ถูกนับต่อ `route + IP` ด้วยหน้าต่างคงที่ 60 วินาที:
+
+| กลุ่ม route | จำกัด |
+| --- | --- |
+| `POST /api/auth/login`, `POST /api/auth/register`, `GET /api/me/line/authorize-url`, `POST /api/me/line` | 5 ครั้ง/นาที |
+| route อื่นทั้งหมด | 120 ครั้ง/นาที |
+
+เกินจำกัดคืน `429 Too Many Requests` พร้อม header `Retry-After: 60`:
+
+```json
+{
+  "name": "Too Many Requests",
+  "message": "Rate limit exceeded.",
+  "code": 0,
+  "status": 429,
+  "type": "yii\\web\\TooManyRequestsHttpException"
+}
+```
+
+## 17. `POST /api/auth/logout`
+
+ต้องล็อกอิน ยกเลิก token ปัจจุบันทันทีฝั่ง server — token เดิมใช้ยืนยันตัวตนไม่ได้อีก
+
+### Success — `200 OK`
+
+```json
+{ "logged_out": true }
+```
+
+### Errors
+
+- `401` — ขาด header, token ผิด หรือ token หมดอายุ
 
 ## 15. Notifications
 

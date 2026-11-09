@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
-import { clearToken, getToken, saveToken } from './api/client'
+import { apiFetch, clearToken, getToken, saveToken } from './api/client'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import FeedPage from './pages/FeedPage'
@@ -23,7 +23,12 @@ export default function App() {
     setUser(result.user)
   }
 
-  function logout() {
+  async function logout() {
+    try {
+      await apiFetch('/auth/logout', { method: 'POST', auth: true })
+    } catch {
+      // ponytail: token หมดอายุไปแล้วก็ถือว่าออกแล้ว — ล้างฝั่ง client ต่อ
+    }
     clearToken()
     setToken(null)
     setUser(null)
@@ -43,7 +48,7 @@ export default function App() {
           </nav>
           <div className="topbar-actions">
             {user && <span className="topbar-user">{user.display_name}</span>}
-            <button className="button secondary" type="button" onClick={logout}>ออกจากระบบ</button>
+            <button className="button secondary" type="button" onClick={() => { logout() }}>ออกจากระบบ</button>
           </div>
         </header>
       )}

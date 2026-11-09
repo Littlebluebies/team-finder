@@ -31,6 +31,7 @@ return [
             'loginUrl' => null,
         ],
         'db' => require __DIR__ . '/db.php',
+        'cache' => ['class' => yii\caching\FileCache::class],
         'mailer' => $mailer,
         'urlManager' => [
             'enablePrettyUrl' => true,
@@ -39,6 +40,7 @@ return [
             'rules' => [
                 'POST api/auth/register' => 'auth/register',
                 'POST api/auth/login' => 'auth/login',
+                'POST api/auth/logout' => 'auth/logout',
                 'GET api/skills' => 'skill/index',
                 'POST api/posts' => 'post/create',
                 'GET api/posts' => 'post/index',
@@ -69,5 +71,14 @@ return [
     ],
     'params' => [
         'notifications' => $notifications,
+        'rateLimit' => [
+            'window' => 60,
+            'auth' => 5,
+            'default' => 120,
+            'auth_routes' => ['auth/login', 'auth/register', 'line/authorize-url', 'line/link'],
+        ],
     ],
+    'on beforeAction' => static function ($event) {
+        \app\filters\RateLimiter::check($event->action->uniqueId);
+    },
 ];

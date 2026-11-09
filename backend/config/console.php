@@ -18,6 +18,7 @@ return [
     'controllerNamespace' => 'app\commands',
     'components' => [
         'db' => require __DIR__ . '/db.php',
+        'cache' => ['class' => yii\caching\FileCache::class],
         'mailer' => $mailer,
     ],
     'params' => [
