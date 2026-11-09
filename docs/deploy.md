@@ -5,6 +5,28 @@ Frontend กับ API อยู่ origin เดียวกัน จึงไ
 
 ไฟล์ config ตัวอย่าง: [`deploy/nginx.conf.example`](../deploy/nginx.conf.example)
 
+## Railway (Docker) — ทางเลือกไม่ต้องมี server เอง
+
+โปรเจกต์มี `Dockerfile` (nginx + php-fpm + static frontend ใน container เดียว) พร้อม `docker/entrypoint.sh` ที่รัน migrate ทุก deploy และ retry loop ของ notification ทุก 60 วินาที
+
+ขั้นตอนบน https://railway.app:
+
+1. **New Project → Deploy from GitHub repo** → เลือก repo นี้ (Railway ตรวจ `Dockerfile` อัตโนมัติ)
+2. **Add a database → MySQL** — Railway ฉีด `MYSQLHOST`, `MYSQLPORT`, `MYSQLDATABASE`, `MYSQLUSER`, `MYSQLPASSWORD` ให้ทุก service ใน project
+3. ที่ service เว็บ → **Variables** ใส่:
+   - `APP_URL` = URL ที่ Railway ให้ (เช่น `https://team-finder-production.up.railway.app`) — ต้อง Generate Domain ก่อนจึงจะรู้ค่า
+   - `DRY_RUN=false`
+   - `MAIL_DSN` / `MAIL_FROM` / `MAIL_FROM_NAME` — SMTP ของคุณ
+   - `LINE_CHANNEL_ID` / `LINE_CHANNEL_SECRET` / `LINE_ACCESS_TOKEN` / `LINE_REDIRECT_URI` = `{APP_URL}/line/callback`
+4. **Deploy** — entrypoint จะ migrate schema ให้เอง (database ยังว่าง = ได้ schema ล่าสุดทันที)
+5. LINE Developers Console → LINE Login channel → App settings → เพิ่ม Callback URL `https://{domain}/line/callback`
+
+หมายเหตุ:
+
+- secrets ใส่เฉพาะใน Railway Variables — ห้าม commit ทุกกรณี
+- `db.php`/`notifications.php` อ่าน env ก่อน แล้ว fallback เป็นไฟล์ local เดิม — dev ทำงานเหมือนเดิม
+- ลบ service หรือ volume ของ Railway = ข้อมูล MySQL หาย — สำรองก่อน (`mysqldump` ผ่าน `railway run`)
+
 ## 1. ติดตั้ง packages
 
 ```bash
