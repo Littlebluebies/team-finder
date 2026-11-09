@@ -244,9 +244,10 @@ Body `{ "code": "...", "state": "..." }`
 
 คืน `{ "linked": false }` เสมอ (idempotent)
 
-### 8.6 `toAuthArray()` เพิ่ม `line_linked`
+### 8.6 `toAuthArray()` เพิ่ม `line_linked` และ `line_linked_at`
 
 - `line_linked = (line_user_id !== null)`
+- `line_linked_at` = เวลาที่เชื่อมล่าสุด หรือ `null`
 - ไม่คืน `line_user_id` หรือ state ออก API ทุกกรณี
 
 ### 8.7 ไม่เปลี่ยน endpoint เดิม
